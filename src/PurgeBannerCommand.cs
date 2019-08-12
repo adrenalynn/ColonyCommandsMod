@@ -32,6 +32,26 @@ namespace ColonyCommands
 				return true;
 			}
 
+			// command: /purgebanner days <minage> (Purge ALL colonies from inactive players)
+			if (splits.Count == 3 && splits[1].Equals("days")) {
+				if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "purgeallbanner")) {
+					return true;
+				}
+				int minage = int.MaxValue;
+				if (!int.TryParse(splits[2], out minage)) {
+					Chat.Send(causedBy, "Syntax: /purgebanner days <minage>");
+					return true;
+				}
+
+				int counter = 0;
+				foreach (KeyValuePair<Players.Player, int> entry in ActivityTracker.GetInactivePlayers(minage)) {
+					Players.Player player = entry.Key;
+					counter += PurgePlayerColonies(causedBy, player);
+				}
+				Chat.Send(causedBy, $"Purged {counter} colonies from inactive players");
+				return true;
+			}
+
 			Colony colony = null;
 			BannerTracker.Banner banner = null;
 			int shortestDistance = int.MaxValue;
@@ -63,6 +83,7 @@ namespace ColonyCommands
 					PurgeColony(causedBy, colony);
 				} else {
 					PurgePlayerFromColonies(causedBy, splits[1]);
+					Chat.Send(causedBy, $"Freed {splits[1]} from any colonies");
 				}
 				return true;
 			}
@@ -97,16 +118,22 @@ namespace ColonyCommands
 				Chat.Send(causedBy, $"Could not find {targetName}: {error}");
 				return;
 			}
+			PurgePlayerColonies(causedBy, target);
+			return;
+		}
+
+		public int PurgePlayerColonies(Players.Player causedBy, Players.Player target)
+		{
+			int i = 0;
 			foreach (Colony colony in target.Colonies) {
 				if (colony.Owners.Length == 1) {
 					ServerManager.ClientCommands.DeleteColonyAndBanner(causedBy, colony, colony.Banners[0].Position);
 				} else {
 					colony.RemoveOwner(target);
 				}
+				i++;
 			}
-
-			Chat.Send(causedBy, $"Deleted all colonies of {target.Name} and revoked ownership from shared colonies");
-			return;
+			return i;
 		}
 
 		// purge all colonies within a given range

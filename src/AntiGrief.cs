@@ -62,7 +62,6 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new BanChatCommand());
 			CommandManager.RegisterCommand(new BannerNameChatCommand());
 			CommandManager.RegisterCommand(new BetterChatCommand());
-			// CommandManager.RegisterCommand(new CleanBannersChatCommand());
 			CommandManager.RegisterCommand(new ColonyCap());
 			CommandManager.RegisterCommand(new DrainChatCommand());
 			// CommandManager.RegisterCommand(new GiveAllChatCommand());
@@ -75,7 +74,6 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new LastSeenChatCommand());
 			CommandManager.RegisterCommand(new NoFlightChatCommand());
 			CommandManager.RegisterCommand(new OnlineChatCommand());
-			// CommandManager.RegisterCommand(new PurgeAllChatCommand());
 			CommandManager.RegisterCommand(new ServerPopCommand());
 			CommandManager.RegisterCommand(new StuckChatCommand());
 			CommandManager.RegisterCommand(new TopChatCommand());

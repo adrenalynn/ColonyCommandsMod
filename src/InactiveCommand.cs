@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Chatting;
 using Chatting.Commands;
 
@@ -18,36 +17,45 @@ namespace ColonyCommands
 			if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "inactive")) {
 				return true;
 			}
-			var m = Regex.Match(chattext, @"/inactive (?<days>\d+) ?(?<max>\d+)?");
-			if (!m.Success) {
-				Chat.Send(causedBy, "Syntax: /inactive {days} {max}");
-				return true;
-			}
 			int days;
-			if (!int.TryParse(m.Groups["days"].Value, out days) || days < 1) {
-				Chat.Send(causedBy, $"Min days should be larger than 1");
+			int max_days = int.MaxValue;
+			if (splits.Count == 3) {
+				if (!int.TryParse(splits[2], out max_days)) {
+					Chat.Send(causedBy, $"Could not parse max value");
+					return true;
+				}
+			}
+			if (splits.Count >= 2) {
+				if (!int.TryParse(splits[1], out days)) {
+					Chat.Send(causedBy, $"Could not parse days value");
+					return true;
+				}
+			} else {
+				Chat.Send(causedBy, "Syntax: /inactive {days} [max_days]");
 				return true;
 			}
-			int max_days = int.MaxValue;
-			int.TryParse(m.Groups["max_days"].Value, out max_days);
 			if (days > max_days) {
 				Chat.Send(causedBy, $"Max should be more than min days.");
 				return true;
 			}
 
-			String resultMsg = "";
+			string resultMsg = "";
+			int counter = 0;
 			foreach (KeyValuePair<Players.Player, int> entry in ActivityTracker.GetInactivePlayers(days, max_days)) {
-				var player = entry.Key;
-				var inactiveDays = entry.Value;
+				Players.Player player = entry.Key;
+				int inactiveDays = entry.Value;
 				if (resultMsg.Length > 0) {
 					resultMsg += ", ";
 				}
-				resultMsg += $"{player.ID.ToStringReadable()} ({inactiveDays})";
+				resultMsg += $"{player.ID.ToStringReadable()}({inactiveDays})";
+				counter++;
 			}
-			if (resultMsg.Length < 1) {
+			if (counter == 0) {
 				resultMsg = "No inactive players found";
+			} else {
+				resultMsg += $". In total {counter} players";
 			}
-			Chat.Send (causedBy, resultMsg);
+			Chat.Send(causedBy, resultMsg);
 			return true;
 		}
 	}
