@@ -123,18 +123,24 @@ namespace ColonyCommands
       return stats.lastSeen;
     }
 
-    public static Dictionary<Players.Player, int> GetInactivePlayers(int days, int max = 0)
-    {
-      var result = new Dictionary<Players.Player, int>();
-      foreach (var player in Players.PlayerDatabase.Values) {
-        StatsDataEntry stats = GetOrCreateStats(player.ID.ToStringReadable());
-        double inactiveDays = DateTime.Now.Subtract(DateTime.Parse(stats.lastSeen)).TotalDays;
-        if (inactiveDays >= days && (max == 0 || inactiveDays <= max)) {
-          result.Add(player, (int)inactiveDays);
-        }
-      }
-      return result;
-    }
+	public static Dictionary<Players.Player, int> GetInactivePlayers(int days)
+	{
+		var result = new Dictionary<Players.Player, int>();
+		foreach (Players.Player player in Players.PlayerDatabase.Values) {
+			StatsDataEntry stats = GetOrCreateStats(player.ID.ToStringReadable());
+			DateTime lastSeen = DateTime.Now;
+			try {
+				lastSeen = DateTime.Parse(stats.lastSeen);
+			} catch (Exception exception) {
+				Log.WriteError ($"Unable to parse lastSeen '{stats.lastSeen}': {exception.Message}");
+			}
+			double inactiveDays = DateTime.Now.Subtract(lastSeen).TotalDays;
+			if (inactiveDays >= days) {
+				result.Add(player, (int)inactiveDays);
+			}
+		}
+		return result;
+	}
 
     public class StatsDataEntry
     {

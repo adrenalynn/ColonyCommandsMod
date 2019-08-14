@@ -21,7 +21,7 @@ namespace ColonyCommands
 				return true;
 			}
 
-			var m = Regex.Match(chattext, @"/spawnnpc (?<amount>\d+) ?(?<player>['].+[']|[^ ]+)?");
+			Match m = Regex.Match(chattext, @"/spawnnpc (?<amount>\d+) ?(?<player>['].+[']|[^ ]+)?");
 			if (!m.Success) {
 				Chat.Send(causedBy, "Syntax: /spawnnpc {number} [targetplayer]");
 				return true;
@@ -32,9 +32,20 @@ namespace ColonyCommands
 				return true;
 			}
 
-			Colony colony = causedBy.ActiveColony;
+			Players.Player target = causedBy;
+			string error;
+			if (!m.Groups["player"].Value.Equals("")) {
+				if (!PlayerHelper.TryGetPlayer(m.Groups["player"].Value, out target, out error)) {
+					Chat.Send(causedBy, "Could not find target: {error}");
+				}
+			}
+
+			Colony colony = target.ActiveColony;
 			if (colony == null) {
-				Chat.Send(causedBy, "You need to be at an active colony to spawn beds");
+				Chat.Send(target, "You need to be at an active colony to spawn beds");
+				if (causedBy != target) {
+					Chat.Send(causedBy, " {target} has no active colony");
+				}
 				return true;
 			}
 			BannerTracker.Banner banner = colony.GetClosestBanner(causedBy.VoxelPosition);
@@ -43,12 +54,12 @@ namespace ColonyCommands
 				return true;
 			}
 
-			// NPCType laborer = NPCType.GetByKeyNameOrDefault("pipliz.laborer");
 			for (int i = 0; i < amount; i++) {
-				// NPCBase npc = new NPCBase(colony, banner.Position);
-				// ModLoader.TriggerCallbacks(ModLoader.EModCallbackType.OnNPCRecruited, npc);
+				NPCBase npc = new NPCBase(colony, banner.Position);
+				NPCTracker.Add(npc);
+				colony.RegisterNPC(npc);
+				ModLoader.Callbacks.OnNPCRecruited.Invoke(npc);
 			}
-			// colony.SendUpdate();
 
 			Chat.Send(causedBy, $"Spawned {amount} colonists");
 			return true;
