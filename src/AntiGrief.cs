@@ -114,13 +114,21 @@ namespace ColonyCommands {
 		[ModLoader.ModCallback (ModLoader.EModCallbackType.OnTryChangeBlock, NAMESPACE + ".OnTryChangeBlock")]
 		public static void OnTryChangeBlock (ModLoader.OnTryChangeBlockData userData)
 		{
-			if (userData.RequestOrigin.Type != BlockChangeRequestOrigin.EType.Player) {
-				return;
+			// TryChangeBlock can be caused by both players and colonies (Builder/Digger)
+			Players.Player causedBy = null;
+			if (userData.RequestOrigin.Type == BlockChangeRequestOrigin.EType.Player) {
+				causedBy = userData.RequestOrigin.AsPlayer;
+			} else if (userData.RequestOrigin.Type == BlockChangeRequestOrigin.EType.Colony) {
+				Colony colony = userData.RequestOrigin.AsColony;
+				if (colony == null) {
+					return;
+				}
+				causedBy = colony.Owners[0];	// colony leader
 			}
-			Players.Player causedBy = userData.RequestOrigin.AsPlayer;
 			if (causedBy == null) {
 				return;
 			}
+
 			Pipliz.Vector3Int playerPos = userData.Position;
 
 			// allow staff members
@@ -181,9 +189,13 @@ namespace ColonyCommands {
 							int tooCloseX = checkRangeX - distanceX;
 							int tooCloseZ = checkRangeZ - distanceZ;
 							int moveBlocks = (tooCloseX > tooCloseZ) ? tooCloseX : tooCloseZ;
-							Chat.Send(causedBy, $"<color=red>Too close to another banner! Please move {moveBlocks} blocks further</color>");
+							if (causedBy.ConnectionState == Players.EConnectionState.Connected) {
+								Chat.Send(causedBy, $"<color=red>Too close to another banner! Please move {moveBlocks} blocks further</color>");
+							}
 						} else {
-							Chat.Send(causedBy, "<color=red>No permission to change blocks near this banner!</color>");
+							if (causedBy.ConnectionState == Players.EConnectionState.Connected) {
+								Chat.Send(causedBy, "<color=red>No permission to change blocks near this banner!</color>");
+							}
 						}
 						BlockCallback(userData);
 						return;
@@ -194,7 +206,9 @@ namespace ColonyCommands {
 			// check custom protection areas
 			foreach (CustomProtectionArea area in CustomAreas) {
 				if (area.Contains(playerPos) && !PermissionsManager.HasPermission(causedBy, PERMISSION_SPAWN_CHANGE)) {
-					Chat.Send(causedBy, "<color=red>You don't have permission to change this protected area!</color>");
+					if (causedBy.ConnectionState == Players.EConnectionState.Connected) {
+						Chat.Send(causedBy, "<color=red>You don't have permission to change this protected area!</color>");
+					}
 					BlockCallback(userData);
 					return;
 				}
