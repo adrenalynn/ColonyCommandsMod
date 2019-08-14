@@ -12,7 +12,8 @@
 		{ "version": "0.7.5", "notes": [
 				"/purgebanner days {minage} to clear abandoned colonies",
 				"fixed /spawnnpc and /inactive commands",
-				"Antigrief now also checks builder/digger areas"
+				"Antigrief now also checks builder/digger areas",
+				"/top no longer sorts reverse"
 			]
 		},
 		{ "version": "0.7.5", "notes": [

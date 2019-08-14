@@ -98,7 +98,7 @@ namespace ColonyCommands
 
 			List<KeyValuePair<string, int>> sortedResult = results.ToList();
 			sortedResult.Sort(delegate(KeyValuePair<string, int> kvp1, KeyValuePair<string, int> kvp2) {
-				return kvp1.Value.CompareTo(kvp2.Value);
+				return kvp2.Value.CompareTo(kvp1.Value);
 			});
 
 			Chat.Send(causedBy, $"##### Top {typename} #####");
