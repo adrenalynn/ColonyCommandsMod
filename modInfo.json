@@ -13,10 +13,7 @@
 				"/purgebanner days {minage} to clear abandoned colonies",
 				"fixed /spawnnpc and /inactive commands",
 				"Antigrief now also checks builder/digger areas",
-				"/top no longer sorts reverse"
-			]
-		},
-		{ "version": "0.7.5", "notes": [
+				"/top no longer sorts reverse",
 				"improved /warpbanner",
 				"/list {player} command to list colonies"
 			]
