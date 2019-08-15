@@ -10,6 +10,7 @@ using TerrainGeneration;
 using BlockEntities.Implementations;
 using UnityEngine;
 using Shared.Networking;
+using MeshedObjects;
 
 namespace ColonyCommands {
 
@@ -449,8 +450,18 @@ namespace ColonyCommands {
 	// Helper function to save some lines of code
 	public static class Helper
 	{
-		public static void TeleportPlayer(Players.Player target, Vector3 position)
+		public static void TeleportPlayer(Players.Player target, Vector3 position, bool force = false)
 		{
+			// avoid teleporting while mounted
+			if (MeshedObjectManager.HasVehicle(target)) {
+				if (!force) {
+					Chat.Send(target, "Please dismount before teleporting");
+					return;
+				} else {
+					MeshedObjectManager.Detach(target);
+				}
+			}
+
 			using (ByteBuilder byteBuilder = ByteBuilder.Get()) {
 				byteBuilder.Write(ClientMessageType.ReceivePosition);
 				byteBuilder.Write(position);

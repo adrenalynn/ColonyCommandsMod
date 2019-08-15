@@ -100,7 +100,7 @@ namespace ColonyCommands {
         return;
       }
 
-		Helper.TeleportPlayer(target, jailPosition);
+		Helper.TeleportPlayer(target, jailPosition, true);
 
       List<string> permissions = new List<string>();
       foreach (string permission in permissionList) {
@@ -350,7 +350,7 @@ namespace ColonyCommands {
       jailedPersons.Remove(target);
       Save();
 
-      Helper.TeleportPlayer(target, ServerManager.TerrainGenerator.GetDefaultSpawnLocation().Vector);
+      Helper.TeleportPlayer(target, ServerManager.TerrainGenerator.GetDefaultSpawnLocation().Vector, true);
       Chat.Send(target, "<color=yellow>You did your time and are released from Jail</color>");
       if (causedBy != null) {
         Log.Write($"{causedBy.Name} released {target.Name} from jail");
@@ -380,7 +380,7 @@ namespace ColonyCommands {
       }
       uint distance = (uint) Vector3.Distance(causedBy.Position, jailPosition);
       if (distance > jailRange) {
-        Helper.TeleportPlayer(causedBy, jailPosition);
+        Helper.TeleportPlayer(causedBy, jailPosition, true);
 
         ++record.escapeAttempts;
         if (GRACE_ESCAPE_ATTEMPTS == 0 || record.escapeAttempts < GRACE_ESCAPE_ATTEMPTS) {
