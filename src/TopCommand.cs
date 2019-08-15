@@ -62,7 +62,7 @@ namespace ColonyCommands
 				players.Add(item.Value);
 			}
 
-			Dictionary<string, int> results;
+			Dictionary<string, long> results;
 			EScoreType scoreType;
 			if (typename.Equals("score")) {
 				scoreType = EScoreType.HappinessScore;
@@ -96,33 +96,39 @@ namespace ColonyCommands
 			}
 			typename = typename.Substring(0,1).ToUpper() + typename.Substring(1);
 
-			List<KeyValuePair<string, int>> sortedResult = results.ToList();
-			sortedResult.Sort(delegate(KeyValuePair<string, int> kvp1, KeyValuePair<string, int> kvp2) {
+			List<KeyValuePair<string, long>> sortedResult = results.ToList();
+			sortedResult.Sort(delegate(KeyValuePair<string, long> kvp1, KeyValuePair<string, long> kvp2) {
 				return kvp2.Value.CompareTo(kvp1.Value);
 			});
 
 			Chat.Send(causedBy, $"##### Top {typename} #####");
 			for (int i = 0; i < 10 && i < sortedResult.Count; i++) {
-				string val = sortedResult[i].Value.ToString();
-				if (scoreType == EScoreType.TimePlayed) {
-					val = $"{System.Math.Truncate(sortedResult[i].Value / 60f) % 60f:00}h:{sortedResult[i].Value % 60f:00}m";
+				string display_val;
+				long val = sortedResult[i].Value;
+				if (val > 1501300) {
+					display_val = string.Format("{0:N0}m", val / 1000000);
+				} else {
+					display_val = string.Format("{0:N0}", val);
 				}
-				Chat.Send(causedBy, $"{i + 1}: {sortedResult[i].Key}   {val}");
+				if (scoreType == EScoreType.TimePlayed) {
+					display_val = $"{System.Math.Truncate(sortedResult[i].Value / 60f) % 60f:00}:{sortedResult[i].Value % 60f:00}";
+				}
+				Chat.Send(causedBy, $"{i + 1}: {display_val,10} {sortedResult[i].Key}");
 			}
 
 			return true;
 		}
 
-		public Dictionary<string, int> ScoreColonies(List<Players.Player> players, ECalctype calcType, EScoreType scoreType, ushort item = 0)
+		public Dictionary<string, long> ScoreColonies(List<Players.Player> players, ECalctype calcType, EScoreType scoreType, ushort item = 0)
 		{
-			Dictionary<Colony, int> colonyresults = new Dictionary<Colony, int>();
+			Dictionary<Colony, long> colonyresults = new Dictionary<Colony, long>();
 			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
 				if (colony.Owners.Any(a => players.Contains(a))) {
-					int score = 0;
+					long score = 0;
 					if (scoreType == EScoreType.HappinessScore) {
-						score = (int)(colony.HappinessData.CachedHappiness * colony.FollowerCount);
+						score = (long)(colony.HappinessData.CachedHappiness * colony.FollowerCount);
 					} else if (scoreType == EScoreType.Food) {
-						score = (int)colony.Stockpile.TotalFood;
+						score = (long)colony.Stockpile.TotalFood;
 					} else if (scoreType == EScoreType.Colonists) {
 						score = colony.FollowerCount;
 					} else if (scoreType == EScoreType.Item) {
@@ -132,7 +138,7 @@ namespace ColonyCommands
 				}
 			}
 
-			Dictionary<string, int> results = new Dictionary<string, int>();
+			Dictionary<string, long> results = new Dictionary<string, long>();
 			if (calcType == ECalctype.Colony) {
 				foreach (Colony col in colonyresults.Keys) {
 					results[col.Name] = colonyresults[col];
@@ -153,12 +159,12 @@ namespace ColonyCommands
 		}
 
 		// time played is always player based, no colony version needed
-		public Dictionary<string, int> ScoreByTime(List<Players.Player> players)
+		public Dictionary<string, long> ScoreByTime(List<Players.Player> players)
 		{
-			Dictionary<string, int> results = new Dictionary<string, int>();
+			Dictionary<string, long> results = new Dictionary<string, long>();
 			foreach (Players.Player player in players) {
 				long seconds = ActivityTracker.GetOrCreateStats(player.ID.ToStringReadable()).secondsPlayed;
-				results[player.Name] = (int)(seconds / 60);
+				results[player.Name] = (long)(seconds / 60);
 			}
 			return results;
 		}
