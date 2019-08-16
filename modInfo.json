@@ -13,6 +13,7 @@
 				"/top time should now also work. plus nice'd output",
 				"avoid warping while player is mounted"
 			]
+		},
 		{ "version": "0.7.5", "notes": [
 				"/purgebanner days {minage} to clear abandoned colonies",
 				"fixed /spawnnpc and /inactive commands",
