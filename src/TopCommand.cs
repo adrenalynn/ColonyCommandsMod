@@ -51,12 +51,12 @@ namespace ColonyCommands
 
 			List<Players.Player> players = new List<Players.Player>();
 			foreach (KeyValuePair<NetworkID, Players.Player> item in Players.PlayerDatabase) {
-				// remove players that should be hidden from scoring
-				if (AntiGrief.UnscoredPlayers.Contains(item.Value)) {
-					continue;
-				}
 				// and also empty ones
 				if (string.IsNullOrEmpty(item.Value.Name)) {
+					continue;
+				}
+				// remove players that should be hidden from scoring
+				if (PermissionsManager.HasPermission(item.Value, AntiGrief.MOD_PREFIX + "hidefromtopcmd" )) {
 					continue;
 				}
 				players.Add(item.Value);
@@ -105,13 +105,13 @@ namespace ColonyCommands
 			for (int i = 0; i < 10 && i < sortedResult.Count; i++) {
 				string display_val;
 				long val = sortedResult[i].Value;
-				if (val > 1501300) {
+				if (val > 9501300) {
 					display_val = string.Format("{0:N0}m", val / 1000000);
 				} else {
 					display_val = string.Format("{0:N0}", val);
 				}
 				if (scoreType == EScoreType.TimePlayed) {
-					display_val = $"{System.Math.Truncate(sortedResult[i].Value / 60f) % 60f:00}:{sortedResult[i].Value % 60f:00}";
+					display_val = $"{System.Math.Truncate(val / 3600f)}:{System.Math.Truncate(val % 3600f / 60f):00}:{val % 60f:00}";
 				}
 				Chat.Send(causedBy, $"{i + 1}: {display_val,10} {sortedResult[i].Key}");
 			}
@@ -163,8 +163,7 @@ namespace ColonyCommands
 		{
 			Dictionary<string, long> results = new Dictionary<string, long>();
 			foreach (Players.Player player in players) {
-				long seconds = ActivityTracker.GetOrCreateStats(player.ID.ToStringReadable()).secondsPlayed;
-				results[player.Name] = (long)(seconds / 60);
+				results[player.Name] = ActivityTracker.GetOrCreateStats(player.ID.ToStringReadable()).secondsPlayed;
 			}
 			return results;
 		}

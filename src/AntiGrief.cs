@@ -44,9 +44,6 @@ namespace ColonyCommands {
 			}
 		}
 
-		// used only by the /top command to hide players from the scoring
-		public static List<Players.Player> UnscoredPlayers = new List<Players.Player>();
-
 		[ModLoader.ModCallback(ModLoader.EModCallbackType.OnAssemblyLoaded, NAMESPACE + ".OnAssemblyLoaded")]
 		public static void OnAssemblyLoaded(string path)
 		{
@@ -134,6 +131,12 @@ namespace ColonyCommands {
 
 			// allow staff members
 			if (PermissionsManager.HasPermission(causedBy, PERMISSION_SUPER)) {
+				return;
+			}
+
+			if (userData.TypeNew == BlockTypes.BuiltinBlocks.Types.water && !PermissionsManager.HasPermission(causedBy, MOD_PREFIX + ".placewater")) {
+				Chat.Send(causedBy, "<color=red>You don't have permission to place this block!</color>");
+				BlockCallback(userData);
 				return;
 			}
 
@@ -306,19 +309,6 @@ namespace ColonyCommands {
 				jsonConfig.TryGetAsOrDefault ("NpcKillsKickThreshold", out NpcKillsKickThreshold, 5);
 				jsonConfig.TryGetAsOrDefault ("NpcKillsBanThreshold", out NpcKillsBanThreshold, 6);
 
-				JSONNode jsonNameList;
-				if (jsonConfig.TryGetAs("UnscoredPlayers", out jsonNameList) && jsonNameList.NodeType == NodeType.Array) {
-					foreach (JSONNode jsonName in jsonNameList.LoopArray()) {
-						Players.Player player;
-						string error;
-						string playerName = jsonName.GetAs<string>();
-						if (PlayerHelper.TryGetPlayer(playerName, out player, out error, true)) {
-							UnscoredPlayers.Add(player);
-						} else {
-							Log.Write($"Error loading unscored players {playerName}: {error}");
-						}
-					}
-				}
 				jsonConfig.TryGetAsOrDefault("ColonistLimit", out ColonistLimit, 0);
 				jsonConfig.TryGetAsOrDefault("ColonistCheckInterval", out ColonistLimitCheckSeconds, 30);
 
@@ -372,13 +362,6 @@ namespace ColonyCommands {
 			}
 			jsonConfig.SetAs ("CustomAreas", jsonCustomAreas);
 
-			JSONNode jsonUnscoredPlayers = new JSONNode(NodeType.Array);
-			foreach (Players.Player player in UnscoredPlayers) {
-				JSONNode jsonName = new JSONNode();
-				jsonName.SetAs(player.Name);
-				jsonUnscoredPlayers.AddToArray(jsonName);
-			}
-			jsonConfig.SetAs("UnscoredPlayers", jsonUnscoredPlayers);
 			// jsonConfig.SetAs("DeleteJobSpeed", DeleteJobsManager.GetDeleteJobSpeed());
 
 			JSON.Serialize (ConfigFilepath, jsonConfig, 2);
