@@ -12,7 +12,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
     {
-		if (!splits[0].Equals("/jailvisit")) {
+		if (!splits[0].Equals("/jailvisit") && !splits[0].Equals("/visitjail")) {
 			return false;
 		}
       if (!JailManager.validVisitorPos) {
