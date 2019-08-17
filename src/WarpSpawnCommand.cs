@@ -13,7 +13,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand (Players.Player causedBy, string chattext, List<string> splits)
     {
-	  if (!splits[0].Equals ("/warpspawn")) {
+	  if (!splits[0].Equals("/warpspawn") && !splits[0].Equals("/spawn")) {
 		return false;
 		}
       if (!PermissionsManager.CheckAndWarnPermission (causedBy, AntiGrief.MOD_PREFIX + "warp.spawn.self")) {
