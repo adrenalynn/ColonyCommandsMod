@@ -235,6 +235,7 @@ namespace ColonyCommands {
 			Load();
 			JailManager.Load();
 			WaypointManager.Load();
+			CheckColonistLimit();
 			// StatisticManager.Load();
 			// StatisticManager.TrackItems();
 		}
@@ -312,12 +313,12 @@ namespace ColonyCommands {
 				jsonConfig.TryGetAsOrDefault("ColonistLimit", out ColonistLimit, 0);
 				jsonConfig.TryGetAsOrDefault("ColonistCheckInterval", out ColonistLimitCheckSeconds, 30);
 
-				int speed = 0;
-				jsonConfig.TryGetAsOrDefault("DeleteJobSpeed", out speed, 4);
+				// int speed = 0;
+				// jsonConfig.TryGetAsOrDefault("DeleteJobSpeed", out speed, 4);
 				// DeleteJobsManager.SetDeleteJobSpeed(speed, false);
 
 			} else {
-				Save ();
+				Save();
 				Log.Write ($"Could not find {ConfigFilepath} file, created default one");
 			}
 			Log.Write ($"Using spawn protection with X+ range {SpawnProtectionRangeXPos}");
@@ -331,7 +332,7 @@ namespace ColonyCommands {
 		public static void AddCustomArea (CustomProtectionArea area)
 		{
 			CustomAreas.Add(area);
-			Save ();
+			Save();
 		}
 
 		public static void RemoveCustomArea(CustomProtectionArea area)
@@ -347,15 +348,17 @@ namespace ColonyCommands {
 			if (!JSON.Deserialize (ConfigFilepath, out jsonConfig, false)) {
 				jsonConfig = new JSONNode ();
 			}
-			jsonConfig.SetAs ("SpawnProtectionRangeX+", SpawnProtectionRangeXPos);
-			jsonConfig.SetAs ("SpawnProtectionRangeX-", SpawnProtectionRangeXNeg);
-			jsonConfig.SetAs ("SpawnProtectionRangeZ+", SpawnProtectionRangeZPos);
-			jsonConfig.SetAs ("SpawnProtectionRangeZ-", SpawnProtectionRangeZNeg);
-			jsonConfig.SetAs ("BannerProtectionRangeX", BannerProtectionRangeX);
-			jsonConfig.SetAs ("BannerProtectionRangeZ", BannerProtectionRangeZ);
-			jsonConfig.SetAs ("NpcKillsKickThreshold", NpcKillsKickThreshold);
-			jsonConfig.SetAs ("NpcKillsBanThreshold", NpcKillsBanThreshold);
-			jsonConfig.SetAs ("NpcKillsJailThreshold", NpcKillsJailThreshold);
+			jsonConfig.SetAs("SpawnProtectionRangeX+", SpawnProtectionRangeXPos);
+			jsonConfig.SetAs("SpawnProtectionRangeX-", SpawnProtectionRangeXNeg);
+			jsonConfig.SetAs("SpawnProtectionRangeZ+", SpawnProtectionRangeZPos);
+			jsonConfig.SetAs("SpawnProtectionRangeZ-", SpawnProtectionRangeZNeg);
+			jsonConfig.SetAs("BannerProtectionRangeX", BannerProtectionRangeX);
+			jsonConfig.SetAs("BannerProtectionRangeZ", BannerProtectionRangeZ);
+			jsonConfig.SetAs("NpcKillsKickThreshold", NpcKillsKickThreshold);
+			jsonConfig.SetAs("NpcKillsBanThreshold", NpcKillsBanThreshold);
+			jsonConfig.SetAs("NpcKillsJailThreshold", NpcKillsJailThreshold);
+			jsonConfig.SetAs("ColonistLimit", ColonistLimit);
+			jsonConfig.SetAs("ColonistCheckInterval", ColonistLimitCheckSeconds);
 			var jsonCustomAreas = new JSONNode (NodeType.Array);
 			foreach (var customArea in CustomAreas) {
 				jsonCustomAreas.AddToArray (customArea.ToJSON ());
@@ -415,6 +418,31 @@ namespace ColonyCommands {
 				hitSourceType == ModLoader.OnHitData.EHitSourceType.Misc;
 		}
 
+		public static void CheckColonistLimit()
+		{
+			if (ColonistLimit < 1) {
+				return;
+			}
+			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
+				bool didKill = false;
+				while (colony.FollowerCount > ColonistLimit) {
+					if (colony.LaborerCount > 0) {
+						colony.FindLaborer().OnDeath();
+					} else {
+						colony.Followers[colony.Followers.Count - 1].OnDeath();
+					}
+					didKill = true;
+				}
+				if (didKill) {
+					Chat.Send(colony.Owners, $"<color=red>Colonists are dying, limit per colony is {ColonistLimit}</color>");
+				}
+			}
+
+			ThreadManager.InvokeOnMainThread(delegate() {
+				CheckColonistLimit();
+			}, ColonistLimitCheckSeconds + 0.150);
+		}
+
 		[ModLoader.ModCallback (ModLoader.EModCallbackType.OnAutoSaveWorld, NAMESPACE + ".OnAutoSaveWorld")]
 		public static void OnAutoSaveWorld()
 		{
@@ -425,6 +453,7 @@ namespace ColonyCommands {
 		[ModLoader.ModCallback (ModLoader.EModCallbackType.OnQuit, NAMESPACE + ".OnQuit")]
 		public static void OnQuit()
 		{
+			Save();
 			// TODO StatisticManager.Save();
 		}
 

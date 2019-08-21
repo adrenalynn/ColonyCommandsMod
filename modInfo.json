@@ -9,6 +9,10 @@
 		"0.7.0"
 	],
 	"patchnotes": [
+		{ "version": "0.7.7", "notes": [
+				"fixed /colonycap"
+			]
+		},
 		{ "version": "0.7.6", "notes": [
 				"aliases /visitjail and /leavejail for /jailleave and /jailvisit",
 				"warp aliases /home and /spawn",
