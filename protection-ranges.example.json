@@ -8,6 +8,5 @@
   "BannerProtectionRangeZ" : 50,
   "NpcKillsJailThreshold" : 2,
   "NpcKillsKickThreshold" : 5,
-  "NpcKillsBanThreshold" : 10,
-  "DeleteJobSpeed" : 4
+  "NpcKillsBanThreshold" : 10
 }

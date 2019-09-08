@@ -10,7 +10,8 @@
 	],
 	"patchnotes": [
 		{ "version": "0.7.7", "notes": [
-				"fixed /colonycap"
+				"fixed /colonycap",
+				"added playtime to /lastseen"
 			]
 		},
 		{ "version": "0.7.6", "notes": [

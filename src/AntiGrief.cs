@@ -32,6 +32,7 @@ namespace ColonyCommands {
 		static int BannerProtectionRangeZ;
 		public static int ColonistLimit;
 		public static int ColonistLimitCheckSeconds;
+		public static int ColonistLimitMaxKillPerIteration;
 		public static List<CustomProtectionArea> CustomAreas = new List<CustomProtectionArea> ();
 		static int NpcKillsJailThreshold;
 		static int NpcKillsKickThreshold;
@@ -57,6 +58,7 @@ namespace ColonyCommands {
 			Log.Write("Registering commands (Anti-Grief)");
 			CommandManager.RegisterCommand(new AnnouncementsChatCommand());
 			CommandManager.RegisterCommand(new AntiGriefChatCommand());
+			CommandManager.RegisterCommand(new CustomAreaCommand());
 			CommandManager.RegisterCommand(new BanChatCommand());
 			CommandManager.RegisterCommand(new BannerNameChatCommand());
 			CommandManager.RegisterCommand(new BetterChatCommand());
@@ -312,6 +314,7 @@ namespace ColonyCommands {
 
 				jsonConfig.TryGetAsOrDefault("ColonistLimit", out ColonistLimit, 0);
 				jsonConfig.TryGetAsOrDefault("ColonistCheckInterval", out ColonistLimitCheckSeconds, 30);
+				jsonConfig.TryGetAsOrDefault("ColonistLimitMaxKillPerIteration", out ColonistLimitMaxKillPerIteration, 500);
 
 				// int speed = 0;
 				// jsonConfig.TryGetAsOrDefault("DeleteJobSpeed", out speed, 4);
@@ -359,6 +362,7 @@ namespace ColonyCommands {
 			jsonConfig.SetAs("NpcKillsJailThreshold", NpcKillsJailThreshold);
 			jsonConfig.SetAs("ColonistLimit", ColonistLimit);
 			jsonConfig.SetAs("ColonistCheckInterval", ColonistLimitCheckSeconds);
+			jsonConfig.SetAs("ColonistLimitMaxKillPerIteration", ColonistLimitMaxKillPerIteration);
 			var jsonCustomAreas = new JSONNode (NodeType.Array);
 			foreach (var customArea in CustomAreas) {
 				jsonCustomAreas.AddToArray (customArea.ToJSON ());
@@ -403,7 +407,14 @@ namespace ColonyCommands {
 			Log.Write($"{killer.Name} killed a colonist of {npc.Colony.ColonyID} at {npc.Position}");
 			int remainingJail = NpcKillsJailThreshold - kills;
 			int remainingKick = NpcKillsKickThreshold - kills;
-			Chat.Send(killer, $"You killed a colonist, remaining until jail: {remainingJail}, remaining until kick: {remainingKick}");
+			string msg = "You killed a colonist";
+			if (NpcKillsJailThreshold > 0) {
+				msg += $", remaining until jail: {remainingJail}";
+			}
+			if (NpcKillsKickThreshold > 0) {
+				msg += $", remaining until kick: {remainingKick}";
+			}
+			Chat.Send(killer, msg);
 		}
 
 		static bool IsKilled(NPC.NPCBase npc, ModLoader.OnHitData data)
@@ -423,14 +434,16 @@ namespace ColonyCommands {
 			if (ColonistLimit < 1) {
 				return;
 			}
+			int killed = 0;
 			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
 				bool didKill = false;
-				while (colony.FollowerCount > ColonistLimit) {
+				while (colony.FollowerCount > ColonistLimit && killed < ColonistLimitMaxKillPerIteration) {
 					if (colony.LaborerCount > 0) {
 						colony.FindLaborer().OnDeath();
 					} else {
 						colony.Followers[colony.Followers.Count - 1].OnDeath();
 					}
+					killed++;
 					didKill = true;
 				}
 				if (didKill) {
