@@ -3,7 +3,7 @@ modname = ColonyCommands
 zipname = $(modname)-$(version).zip
 dllname = $(modname).dll
 version = $(shell cat modInfo.json | awk '/"version"/ {print $$3}' | head -1 | sed 's/[",]//g')
-zip_files_extra = announcements.example.json protection-ranges.example.json chatcolors.example.json modInfo.json LICENSE README.md
+zip_files_extra = announcements.example.json antigrief-config.example.json chatcolors.example.json modInfo.json LICENSE README.md
 build_dir = adrenalynn/$(modname)
 gamedir = /local/games/Steam/steamapps/common/Colony\ Survival
 

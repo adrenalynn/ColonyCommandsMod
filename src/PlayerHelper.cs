@@ -130,7 +130,7 @@ namespace ColonyCommands
 
 			// try to find by string closest match
 			Colony closestMatch = null;
-			int closestDist = 5;
+			int closestDist = int.MaxValue;
 			foreach (Colony checkColony in ServerManager.ColonyTracker.ColoniesByID.Values) {
 				if (checkColony.Name == null || checkColony.Name.Equals("")) {
 					continue;
@@ -143,7 +143,7 @@ namespace ColonyCommands
 					closestMatch = null;
 				}
 			}
-			if (closestMatch != null) {
+			if (closestMatch != null && closestDist < closestMatch.Name.Length * 0.2) {
 				colony = closestMatch;
 				return true;
 			}

@@ -33,15 +33,15 @@ namespace ColonyCommands {
 		public static int ColonistLimit;
 		public static int ColonistLimitCheckSeconds;
 		public static int ColonistLimitMaxKillPerIteration;
-		public static List<CustomProtectionArea> CustomAreas = new List<CustomProtectionArea> ();
+		public static List<CustomProtectionArea> CustomAreas = new List<CustomProtectionArea>();
 		static int NpcKillsJailThreshold;
 		static int NpcKillsKickThreshold;
 		static int NpcKillsBanThreshold;
-		static Dictionary<Players.Player, int> KillCounter = new Dictionary<Players.Player, int> ();
+		static Dictionary<Players.Player, int> KillCounter = new Dictionary<Players.Player, int>();
 
 		static string ConfigFilepath {
 			get {
-				return Path.Combine (Path.Combine ("gamedata", "savegames"), Path.Combine (ServerManager.WorldName, "antigrief-config.json"));
+				return Path.Combine(Path.Combine("gamedata", "savegames"), Path.Combine(ServerManager.WorldName, "antigrief-config.json"));
 			}
 		}
 
@@ -400,7 +400,7 @@ namespace ColonyCommands {
 				Chat.SendToConnected($"{killer.Name} put in Jail for killing too many colonists");
 				JailManager.jailPlayer(killer, null, "Killing Colonists", JailManager.DEFAULT_JAIL_TIME);
 			}
-			Log.Write($"{killer.Name} killed a colonist of {npc.Colony.ColonyID} at {npc.Position}");
+			Log.Write($"{killer.Name} killed a colonist of {npc.Colony.Name} at {npc.Position}");
 			int remainingJail = NpcKillsJailThreshold - kills;
 			int remainingKick = NpcKillsKickThreshold - kills;
 			string msg = "You killed a colonist";
@@ -430,21 +430,43 @@ namespace ColonyCommands {
 			if (ColonistLimit < 1) {
 				return;
 			}
-			int killed = 0;
-			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
-				bool didKill = false;
-				while (colony.FollowerCount > ColonistLimit && killed < ColonistLimitMaxKillPerIteration) {
-					if (colony.LaborerCount > 0) {
-						colony.FindLaborer().OnDeath();
-					} else {
-						colony.Followers[colony.Followers.Count - 1].OnDeath();
+
+			int total_killed = 0;
+			foreach (Players.Player target in Players.PlayerDatabase.Values) {
+				int total_colonists = 0;
+				int killed_per_player = 0;
+				foreach (Colony colony in target.Colonies) {
+					total_colonists += colony.FollowerCount;
+				}
+
+				if (total_colonists > ColonistLimit) {
+					Colony colony = null;
+					if (target.ConnectionState == Players.EConnectionState.Connected) {
+						colony = target.ActiveColony;
 					}
-					killed++;
-					didKill = true;
+					if (colony == null) {
+						colony = target.Colonies[target.Colonies.Length - 1];
+					}
+
+					while (total_colonists > ColonistLimit && total_killed < ColonistLimitMaxKillPerIteration) {
+						if (colony.LaborerCount > 0) {
+							colony.FindLaborer().OnDeath();
+						} else {
+							colony.Followers[colony.Followers.Count - 1].OnDeath();
+						}
+						total_colonists--;
+						killed_per_player++;
+						total_killed++;
+					}
+					if (target.ConnectionState == Players.EConnectionState.Connected) {
+						Chat.Send(target, $"<color=red>Colonists are dying, limit is {ColonistLimit}</color>");
+					}
+					Log.Write($"ColonyCap: killed {killed_per_player} colonists of: {target.Name}");
 				}
-				if (didKill) {
-					Chat.Send(colony.Owners, $"<color=red>Colonists are dying, limit per colony is {ColonistLimit}</color>");
-				}
+			}
+
+			if (total_killed > 0) {
+				Log.Write($"ColonyCap: killed {total_killed} colonists in total");
 			}
 
 			ThreadManager.InvokeOnMainThread(delegate() {

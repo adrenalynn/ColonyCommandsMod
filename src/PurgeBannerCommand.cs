@@ -17,39 +17,40 @@ namespace ColonyCommands
 				return true;
 			}
 
-			// command: /purgebanner all <range> (Purge ALL colonies within range)
-			if (splits.Count == 3 && splits[1].Equals("all")) {
+			if (splits.Count == 3) {
 				if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "purgeallbanner")) {
 					return true;
 				}
-				int range = 0;
-				if (!int.TryParse(splits[2], out range)) {
-					Chat.Send(causedBy, "Syntax: /purgebanner all <range>");
+				// command: /purgebanner all <range> (Purge ALL colonies within range)
+				if (splits[1].Equals("all")) {
+					int range = 0;
+					if (!int.TryParse(splits[2], out range)) {
+						Chat.Send(causedBy, "Syntax: /purgebanner all <range>");
+						return true;
+					}
+					int counter = PurgeAllColonies(causedBy, range);
+					Chat.Send(causedBy, $"Purged {counter} colonies within range");
 					return true;
-				}
-				int counter = PurgeAllColonies(causedBy, range);
-				Chat.Send(causedBy, $"Purged {counter} colonies within range");
-				return true;
-			}
 
-			// command: /purgebanner days <minage> (Purge ALL colonies from inactive players)
-			if (splits.Count == 3 && splits[1].Equals("days")) {
-				if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "purgeallbanner")) {
-					return true;
-				}
-				int minage = int.MaxValue;
-				if (!int.TryParse(splits[2], out minage)) {
-					Chat.Send(causedBy, "Syntax: /purgebanner days <minage>");
-					return true;
-				}
+				// command: /purgebanner days <minage> (Purge ALL colonies from inactive players)
+				} else if (splits[1].Equals("days")) {
+					int minage = int.MaxValue;
+					if (!int.TryParse(splits[2], out minage)) {
+						Chat.Send(causedBy, "Syntax: /purgebanner days <minage>");
+						return true;
+					}
 
-				int counter = 0;
-				foreach (KeyValuePair<Players.Player, int> entry in ActivityTracker.GetInactivePlayers(minage)) {
-					Players.Player player = entry.Key;
-					counter += PurgePlayerColonies(causedBy, player);
+					int counter = 0;
+					foreach (KeyValuePair<Players.Player, int> entry in ActivityTracker.GetInactivePlayers(minage)) {
+						Players.Player player = entry.Key;
+						counter += PurgePlayerColonies(causedBy, player);
+					}
+					Chat.Send(causedBy, $"Purged {counter} colonies from inactive players");
+					return true;
+				} else {
+					Chat.Send(causedBy, "Syntax: /purgebanner {all|days} <range|age>");
+					return true;
 				}
-				Chat.Send(causedBy, $"Purged {counter} colonies from inactive players");
-				return true;
 			}
 
 			Colony colony = null;
@@ -73,7 +74,7 @@ namespace ColonyCommands
 				return true;
 			}
 			if (shortestDistance > 100) {
-				Chat.Send(causedBy, "Closest banner is more than 100 blocks away. Not doing anything, too risky");
+				Chat.Send(causedBy, "Closest banner is more than 100 blocks away. Not doing anything");
 				return true;
 			}
 
@@ -82,8 +83,9 @@ namespace ColonyCommands
 				if (splits[1].Equals("colony") && colony != null) {
 					PurgeColony(causedBy, colony);
 				} else {
-					PurgePlayerFromColonies(causedBy, splits[1]);
-					Chat.Send(causedBy, $"Freed {splits[1]} from any colonies");
+					if (PurgePlayerFromColonies(causedBy, splits[1])) {
+						Chat.Send(causedBy, $"Freed {splits[1]} from any colonies");
+					}
 				}
 				return true;
 			}
@@ -110,16 +112,16 @@ namespace ColonyCommands
 		}
 
 		// purge all colonies of a given player (or remove him/her in case of multiple owners)
-		public void PurgePlayerFromColonies(Players.Player causedBy, string targetName)
+		public bool PurgePlayerFromColonies(Players.Player causedBy, string targetName)
 		{
 			Players.Player target;
 			string error;
 			if (!PlayerHelper.TryGetPlayer(targetName, out target, out error)) {
 				Chat.Send(causedBy, $"Could not find {targetName}: {error}");
-				return;
+				return false;
 			}
 			PurgePlayerColonies(causedBy, target);
-			return;
+			return true;
 		}
 
 		public int PurgePlayerColonies(Players.Player causedBy, Players.Player target)
