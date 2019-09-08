@@ -79,7 +79,6 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new TopChatCommand());
 			CommandManager.RegisterCommand(new TradeChatCommand());
 			CommandManager.RegisterCommand(new TrashChatCommand());
-			// CommandManager.RegisterCommand(new TrashPlayerChatCommand());
 			CommandManager.RegisterCommand(new TravelChatCommand());
 			CommandManager.RegisterCommand(new TravelHereChatCommand());
 			CommandManager.RegisterCommand(new TravelThereChatCommand());
@@ -98,9 +97,6 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new JailTimeCommand());
 			CommandManager.RegisterCommand(new AreaShowCommand());
 			CommandManager.RegisterCommand(new HelpCommand());
-			// CommandManager.RegisterCommand(new DeleteJobsCommand());
-			// CommandManager.RegisterCommand(new DeleteJobSpeedCommand());
-			// CommandManager.RegisterCommand(new ProductionCommand());
 			CommandManager.RegisterCommand(new ColorTestCommand());
 			CommandManager.RegisterCommand(new SpawnNpcCommand());
 			CommandManager.RegisterCommand(new BedsCommand());
@@ -460,14 +456,12 @@ namespace ColonyCommands {
 		public static void OnAutoSaveWorld()
 		{
 			Save();
-			// TODO StatisticManager.Save();
 		}
 
 		[ModLoader.ModCallback (ModLoader.EModCallbackType.OnQuit, NAMESPACE + ".OnQuit")]
 		public static void OnQuit()
 		{
 			Save();
-			// TODO StatisticManager.Save();
 		}
 
 	} // class
