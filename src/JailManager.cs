@@ -244,8 +244,8 @@ namespace ColonyCommands {
 					string causedByName = node.GetAs<string>("jailedBy");
 					string reason = node.GetAs<string>("jailReason");
 
-					List<string> permissions = node.GetAs<List<string>>("permissions");  // TODO
-					// List<string> permissions = new List<string>;
+					List<string> permissions = new List<string>();
+					//List<string> permissions = node.GetAs<List<string>>("permissions");  // TODO
 					// JSONNode jsonPerm;
 					// node.TryGetAs("permissions", out jsonPerm);
 					// foreach (string perm in jsonPerm.LoopArray()) {
@@ -321,7 +321,7 @@ namespace ColonyCommands {
 				//   permissions.AddToArray(perm);
 				// }
 				//jsonRecord.SetAs("permissions", record.revokedPermissions.ToString());  // TODO
-				jsonRecord.SetAs("permissions", "none");
+				//jsonRecord.SetAs("permissions", "none");
 				jsonPlayers.AddToArray(jsonRecord);
 			}
 			jsonConfig.SetAs("players", jsonPlayers);

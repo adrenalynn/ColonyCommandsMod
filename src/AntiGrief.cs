@@ -2,12 +2,15 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Reflection;
 using Pipliz;
 using Chatting;
 using Chatting.Commands;
 using Pipliz.JSON;
 using TerrainGeneration;
 using BlockEntities.Implementations;
+using NPC;
+using Jobs;
 using UnityEngine;
 using Shared.Networking;
 using MeshedObjects;
@@ -433,35 +436,42 @@ namespace ColonyCommands {
 
 			int total_killed = 0;
 			foreach (Players.Player target in Players.PlayerDatabase.Values) {
-				int total_colonists = 0;
+				if (target.Colonies == null || target.Colonies.Length == 0 || total_killed > ColonistLimitMaxKillPerIteration) {
+					continue;
+				}
+				int player_colonists = 0;
 				int killed_per_player = 0;
-				foreach (Colony colony in target.Colonies) {
-					total_colonists += colony.FollowerCount;
+				foreach (Colony checkColony in target.Colonies) {
+					player_colonists += checkColony.FollowerCount;
+				}
+				if (player_colonists <= ColonistLimit) {
+					continue;
 				}
 
-				if (total_colonists > ColonistLimit) {
-					Colony colony = null;
-					if (target.ConnectionState == Players.EConnectionState.Connected) {
-						colony = target.ActiveColony;
-					}
-					if (colony == null) {
-						colony = target.Colonies[target.Colonies.Length - 1];
+				for (int i = target.Colonies.Length - 1; i >= 0; i--) {
+					Colony colony = target.Colonies[i];
+
+					if (colony.JobFinder.AutoRecruit) {
+						JobFinder colonyJobFinder = colony.JobFinder;
+						colonyJobFinder.AutoRecruit = false;
 					}
 
-					while (total_colonists > ColonistLimit && total_killed < ColonistLimitMaxKillPerIteration) {
-						if (colony.LaborerCount > 0) {
-							colony.FindLaborer().OnDeath();
-						} else {
-							colony.Followers[colony.Followers.Count - 1].OnDeath();
-						}
-						total_colonists--;
+					int killed_per_colony = 0;
+					List<NPCBase> cachedFollowers = new List<NPCBase>(colony.Followers);
+					int j = cachedFollowers.Count - 1;
+					while (player_colonists > ColonistLimit && total_killed < ColonistLimitMaxKillPerIteration && j >= 0) {
+						cachedFollowers[j--].OnDeath();
+						player_colonists--;
+						killed_per_colony++;
 						killed_per_player++;
 						total_killed++;
 					}
-					if (target.ConnectionState == Players.EConnectionState.Connected) {
-						Chat.Send(target, $"<color=red>Colonists are dying, limit is {ColonistLimit}</color>");
+					if (killed_per_colony > 0) {
+						Log.Write($"ColonyCap: killed {killed_per_colony} colonists of {target.Name} in colony {colony.Name}. Player total: {player_colonists}");
 					}
-					Log.Write($"ColonyCap: killed {killed_per_player} colonists of: {target.Name}");
+				}
+				if (target.ConnectionState == Players.EConnectionState.Connected) {
+					Chat.Send(target, $"<color=red>Colonists are dying, limit is {ColonistLimit}</color>");
 				}
 			}
 
