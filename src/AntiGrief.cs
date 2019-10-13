@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Reflection;
@@ -36,6 +37,7 @@ namespace ColonyCommands {
 		public static int ColonistLimit;
 		public static int ColonistLimitCheckSeconds;
 		public static int ColonistLimitMaxKillPerIteration;
+		public static int OnlineBackupIntervalHours;
 		public static List<CustomProtectionArea> CustomAreas = new List<CustomProtectionArea>();
 		static int NpcKillsJailThreshold;
 		static int NpcKillsKickThreshold;
@@ -237,8 +239,11 @@ namespace ColonyCommands {
 			JailManager.Load();
 			WaypointManager.Load();
 			CheckColonistLimit();
-			// StatisticManager.Load();
-			// StatisticManager.TrackItems();
+			if (OnlineBackupIntervalHours > 0) {
+				ThreadManager.InvokeOnMainThread(delegate {
+					PerformOnlineBackup();
+				}, OnlineBackupIntervalHours * 60f * 60f);
+			}
 		}
 
 		// send welcome message
@@ -314,6 +319,7 @@ namespace ColonyCommands {
 				jsonConfig.TryGetAsOrDefault("ColonistLimit", out ColonistLimit, 0);
 				jsonConfig.TryGetAsOrDefault("ColonistCheckInterval", out ColonistLimitCheckSeconds, 30);
 				jsonConfig.TryGetAsOrDefault("ColonistLimitMaxKillPerIteration", out ColonistLimitMaxKillPerIteration, 500);
+				jsonConfig.TryGetAsOrDefault("OnlineBackupIntervalHours", out OnlineBackupIntervalHours, 0);
 
 				// int speed = 0;
 				// jsonConfig.TryGetAsOrDefault("DeleteJobSpeed", out speed, 4);
@@ -362,6 +368,7 @@ namespace ColonyCommands {
 			jsonConfig.SetAs("ColonistLimit", ColonistLimit);
 			jsonConfig.SetAs("ColonistCheckInterval", ColonistLimitCheckSeconds);
 			jsonConfig.SetAs("ColonistLimitMaxKillPerIteration", ColonistLimitMaxKillPerIteration);
+			jsonConfig.SetAs("OnlineBackupIntervalHours", OnlineBackupIntervalHours);
 			var jsonCustomAreas = new JSONNode (NodeType.Array);
 			foreach (var customArea in CustomAreas) {
 				jsonCustomAreas.AddToArray (customArea.ToJSON ());
@@ -494,6 +501,38 @@ namespace ColonyCommands {
 		public static void OnQuit()
 		{
 			Save();
+		}
+
+		public static void PerformOnlineBackup()
+		{
+			double timeStart = Pipliz.Time.SecondsSinceStartDouble;
+			Chat.SendToConnected("Starting online backup", EChatSendOptions.Default);
+
+			string backupPath = "gamedata/savegames/" + ServerManager.WorldName + "-" + Pipliz.Time.FullTimeStamp();
+			int num = 0;
+			string text = backupPath + ".zip";
+			while (File.Exists(text)) {
+				num++;
+				text = backupPath + $"-{num:02}.zip";
+			}
+			backupPath = text;
+
+			ModLoader.Callbacks.OnAutoSaveWorld.Invoke();
+			ServerManager.SaveManager.FlushAllDirtyChunks();
+			ServerManager.SaveManager.EnqueueJob(new SaveManager.SaveJob(delegate (SaveManager.ChunkStorage storage) {
+				Pipliz.Application.WaitForQuitsNoLogging();
+				storage.FlushChunksToFreeForced();
+				storage.Close();
+				ZipFile.CreateFromDirectory("gamedata/savegames/" + ServerManager.WorldName, backupPath, CompressionLevel.Optimal, true);
+				Chat.SendToConnected ("Backup complete", EChatSendOptions.Default);
+			}));
+			double secondsSinceStartDouble = Pipliz.Time.SecondsSinceStartDouble;
+			Log.Write($"Online Backup completed; took {secondsSinceStartDouble - timeStart:F3} seconds");
+
+			// queue the next iteration
+			ThreadManager.InvokeOnMainThread(delegate {
+				PerformOnlineBackup();
+			}, OnlineBackupIntervalHours * 60f * 60f);
 		}
 
 	} // class
