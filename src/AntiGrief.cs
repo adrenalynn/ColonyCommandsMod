@@ -37,6 +37,7 @@ namespace ColonyCommands {
 		public static int ColonistLimit;
 		public static int ColonistLimitCheckSeconds;
 		public static int ColonistLimitMaxKillPerIteration;
+		static List<int> ColonistTierLimits = new List<int>();
 		public static int OnlineBackupIntervalHours;
 		public static List<CustomProtectionArea> CustomAreas = new List<CustomProtectionArea>();
 		static int NpcKillsJailThreshold;
@@ -321,9 +322,14 @@ namespace ColonyCommands {
 				jsonConfig.TryGetAsOrDefault("ColonistLimitMaxKillPerIteration", out ColonistLimitMaxKillPerIteration, 500);
 				jsonConfig.TryGetAsOrDefault("OnlineBackupIntervalHours", out OnlineBackupIntervalHours, 0);
 
-				// int speed = 0;
-				// jsonConfig.TryGetAsOrDefault("DeleteJobSpeed", out speed, 4);
-				// DeleteJobsManager.SetDeleteJobSpeed(speed, false);
+				JSONNode jsonCapacityTiers;
+				if (jsonConfig.TryGetAs("ColonistCapacityTiers", out jsonCapacityTiers) && jsonCapacityTiers.NodeType == NodeType.Array) {
+					foreach (JSONNode jsonVal in jsonCapacityTiers.LoopArray()) {
+						int val = jsonVal.GetAs<int>();
+						ColonistTierLimits.Add(val);
+						Log.Write($"Colonist limit tier{ColonistTierLimits.Count} is {val}");
+					}
+				}
 
 			} else {
 				Save();
@@ -369,13 +375,20 @@ namespace ColonyCommands {
 			jsonConfig.SetAs("ColonistCheckInterval", ColonistLimitCheckSeconds);
 			jsonConfig.SetAs("ColonistLimitMaxKillPerIteration", ColonistLimitMaxKillPerIteration);
 			jsonConfig.SetAs("OnlineBackupIntervalHours", OnlineBackupIntervalHours);
+
+			JSONNode jsonCapacityTiers = new JSONNode(NodeType.Array);
+			for (int i = 0; i < ColonistTierLimits.Count; i++) {
+				JSONNode node = new JSONNode();
+				node.SetAs<int>(ColonistTierLimits[i]);
+				jsonCapacityTiers.AddToArray(node);
+			}
+			jsonConfig.SetAs("ColonistCapacityTiers", jsonCapacityTiers);
+
 			var jsonCustomAreas = new JSONNode (NodeType.Array);
 			foreach (var customArea in CustomAreas) {
 				jsonCustomAreas.AddToArray (customArea.ToJSON ());
 			}
 			jsonConfig.SetAs ("CustomAreas", jsonCustomAreas);
-
-			// jsonConfig.SetAs("DeleteJobSpeed", DeleteJobsManager.GetDeleteJobSpeed());
 
 			JSON.Serialize (ConfigFilepath, jsonConfig, 2);
 		}
@@ -451,7 +464,15 @@ namespace ColonyCommands {
 				foreach (Colony checkColony in target.Colonies) {
 					player_colonists += checkColony.FollowerCount;
 				}
-				if (player_colonists <= ColonistLimit) {
+
+				// calculate effective limit to allow tier levels per player
+				int effectiveLimit = ColonistLimit;
+				for (int i = 0; i < ColonistTierLimits.Count; i++) {
+					if (ColonistTierLimits[i] > 0 && PermissionsManager.HasPermission(target, $"colonistcapacity.tier{i+1}")) {
+						effectiveLimit = ColonistTierLimits[i];
+					}
+				}
+				if (player_colonists <= effectiveLimit) {
 					continue;
 				}
 
@@ -466,7 +487,7 @@ namespace ColonyCommands {
 					int killed_per_colony = 0;
 					List<NPCBase> cachedFollowers = new List<NPCBase>(colony.Followers);
 					int j = cachedFollowers.Count - 1;
-					while (player_colonists > ColonistLimit && total_killed < ColonistLimitMaxKillPerIteration && j >= 0) {
+					while (player_colonists > effectiveLimit && total_killed < ColonistLimitMaxKillPerIteration && j >= 0) {
 						cachedFollowers[j--].OnDeath();
 						player_colonists--;
 						killed_per_colony++;
@@ -474,11 +495,11 @@ namespace ColonyCommands {
 						total_killed++;
 					}
 					if (killed_per_colony > 0) {
-						Log.Write($"ColonyCap: killed {killed_per_colony} colonists of {target.Name} in colony {colony.Name}. Player total: {player_colonists}");
+						Log.Write($"ColonyCap: killed {killed_per_colony} colonists of {target.Name} in colony {colony.Name}. Player total: {player_colonists} (limit: {effectiveLimit})");
 					}
 				}
 				if (target.ConnectionState == Players.EConnectionState.Connected) {
-					Chat.Send(target, $"<color=red>Colonists are dying, limit is {ColonistLimit}</color>");
+					Chat.Send(target, $"<color=red>Colonists are dying, limit is {effectiveLimit}</color>");
 				}
 			}
 
