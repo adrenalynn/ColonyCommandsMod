@@ -38,6 +38,10 @@ namespace ColonyCommands {
 		public static int ColonistLimitCheckSeconds;
 		public static int ColonistLimitMaxKillPerIteration;
 		static List<int> ColonistTierLimits = new List<int>();
+		static List<List<int>> ColonistPerColonyTierLimits = new List<List<int>>();
+		private static float ColonyColonistLimitTierCheckSeconds;
+		private static int ColonyColonistLimitTierWarnTimes;
+		private static Dictionary<Colony, int> ColonyColonistLimitTiers = new Dictionary<Colony, int>();
 		public static int OnlineBackupIntervalHours;
 		public static List<CustomProtectionArea> CustomAreas = new List<CustomProtectionArea>();
 		static int NpcKillsJailThreshold;
@@ -241,9 +245,17 @@ namespace ColonyCommands {
 			WaypointManager.Load();
 			CheckColonistLimit();
 			if (OnlineBackupIntervalHours > 0) {
+				Log.Write($"Found online backup interval setting {OnlineBackupIntervalHours}h");
 				ThreadManager.InvokeOnMainThread(delegate {
 					PerformOnlineBackup();
 				}, OnlineBackupIntervalHours * 60f * 60f);
+			}
+
+			if (ColonistPerColonyTierLimits.Count > 0) {
+				Log.Write("Found per colony tier/difficulty limit settings");
+				ThreadManager.InvokeOnMainThread(delegate {
+					PerformColonistPerColonyLimitCheck();
+				}, ColonyColonistLimitTierCheckSeconds);
 			}
 		}
 
@@ -331,10 +343,25 @@ namespace ColonyCommands {
 					}
 				}
 
+				// colonists per colony tier limits
+				JSONNode jsonTiers;
+				if (jsonConfig.TryGetAs("ColonistLimitsColonyDifficultyTiers", out jsonTiers) && jsonTiers.NodeType == NodeType.Array) {
+					foreach (JSONNode jsonDifficulties in jsonTiers.LoopArray()) {
+						List<int> difficultyLimits = new List<int>();
+						foreach (JSONNode jsonVal in jsonDifficulties.LoopArray()) {
+							difficultyLimits.Add(jsonVal.GetAs<int>());
+						}
+						ColonistPerColonyTierLimits.Add(difficultyLimits);
+						Log.Write($"Found {difficultyLimits.Count} colony difficulty colonist limits for tier{ColonistPerColonyTierLimits.Count}");
+					}
+					jsonConfig.TryGetAsOrDefault("ColonyColonistLimitTierCheckSeconds", out ColonyColonistLimitTierCheckSeconds, 63f);
+					jsonConfig.TryGetAsOrDefault("ColonyColonistLimitTierWarnTimes", out ColonyColonistLimitTierWarnTimes, 3);
+				}
 			} else {
 				Save();
 				Log.Write ($"Could not find {ConfigFilepath} file, created default one");
 			}
+
 			Log.Write ($"Using spawn protection with X+ range {SpawnProtectionRangeXPos}");
 			Log.Write ($"Using spawn protection with X- range {SpawnProtectionRangeXNeg}");
 			Log.Write ($"Using spawn protection with Z+ range {SpawnProtectionRangeZPos}");
@@ -376,6 +403,7 @@ namespace ColonyCommands {
 			jsonConfig.SetAs("ColonistLimitMaxKillPerIteration", ColonistLimitMaxKillPerIteration);
 			jsonConfig.SetAs("OnlineBackupIntervalHours", OnlineBackupIntervalHours);
 
+			// colonists per player limits (tier based)
 			JSONNode jsonCapacityTiers = new JSONNode(NodeType.Array);
 			for (int i = 0; i < ColonistTierLimits.Count; i++) {
 				JSONNode node = new JSONNode();
@@ -383,6 +411,21 @@ namespace ColonyCommands {
 				jsonCapacityTiers.AddToArray(node);
 			}
 			jsonConfig.SetAs("ColonistCapacityTiers", jsonCapacityTiers);
+
+			// colonists per colony limits (tier based)
+			JSONNode jsonColonistTiers = new JSONNode(NodeType.Array);
+			for (int i = 0; i < ColonistPerColonyTierLimits.Count; i++) {
+				JSONNode tierSettings = new JSONNode(NodeType.Array);
+				for (int j = 0; j < ColonistPerColonyTierLimits[i].Count; j++) {
+					JSONNode jsonLimitSetting = new JSONNode();
+					jsonLimitSetting.SetAs<int>(ColonistPerColonyTierLimits[i][j]);
+					tierSettings.AddToArray(jsonLimitSetting);
+				}
+				jsonColonistTiers.AddToArray(tierSettings);
+			}
+			jsonConfig.SetAs("ColonistLimitsColonyDifficultyTiers", jsonColonistTiers);
+			jsonConfig.SetAs("ColonyColonistLimitTierCheckSeconds", ColonyColonistLimitTierCheckSeconds);
+			jsonConfig.SetAs("ColonyColonistLimitTierWarnTimes", ColonyColonistLimitTierWarnTimes);
 
 			var jsonCustomAreas = new JSONNode (NodeType.Array);
 			foreach (var customArea in CustomAreas) {
@@ -448,6 +491,7 @@ namespace ColonyCommands {
 				hitSourceType == ModLoader.OnHitData.EHitSourceType.Misc;
 		}
 
+		// check colonist limit (total colonists per player)
 		public static void CheckColonistLimit()
 		{
 			if (ColonistLimit < 1) {
@@ -510,6 +554,94 @@ namespace ColonyCommands {
 			ThreadManager.InvokeOnMainThread(delegate() {
 				CheckColonistLimit();
 			}, ColonistLimitCheckSeconds + 0.150);
+		}
+
+		public static void PerformColonistPerColonyLimitCheck()
+		{
+			int total_killed = 0;
+			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
+				if (colony.Followers.Count == 0) {
+					continue;
+				}
+				byte zombieDayIndex = ServerManager.WorldSettingsReadOnly.DifficultyDayMonsters;
+				byte zombieNightIndex = ServerManager.WorldSettingsReadOnly.DifficultyNightMonsters;
+				// bool happiness = ServerManager.WorldSettingsReadOnly.EnableHappiness;
+				JSONNode node = new JSONNode(NodeType.Object).SetAs("difficulty", "1");
+				Difficulty.ColonyDifficultySetting setting = (Difficulty.ColonyDifficultySetting)colony.DifficultySetting;
+				if (setting != null) {
+					setting.SerializeToColonyJSON(node, colony);
+					node = node.GetAsOrDefault<JSONNode>("difficulty", null);
+					if (node != null) {
+						zombieDayIndex = node.GetAs<byte>("day_cd");
+						zombieNightIndex = node.GetAs<byte>("night_cd");
+						// happiness = node.GetAs<bool>("enablehappiness");
+					}
+				}
+				int difficultyIndex = zombieDayIndex + zombieNightIndex;
+
+				// find the correct tier limits by leader player
+				Players.Player owner = colony.Owners[0];
+				List<int> difficultyLimits = null;
+				for (int i = 0; i < ColonistPerColonyTierLimits.Count; i++) {
+					if (PermissionsManager.HasPermission(owner, $"colonistcapacity.tier{i+1}")) {
+						difficultyLimits = ColonistPerColonyTierLimits[i];
+					}
+				}
+				if (difficultyLimits == null || difficultyLimits.Count == 0) {
+					continue;
+				}
+
+				// find the colonist limit based on difficulty
+				int effectiveLimit = 0;
+				if (difficultyIndex >= difficultyLimits.Count) {
+					effectiveLimit = difficultyLimits[difficultyLimits.Count - 1];
+				} else {
+					effectiveLimit = difficultyLimits[difficultyIndex];
+				}
+				if (effectiveLimit == 0) {
+					continue;
+				}
+
+				if (colony.Followers.Count <= effectiveLimit) {
+					// remove from 'warning' list if below limit
+					if (ColonyColonistLimitTiers.ContainsKey(colony)) {
+						ColonyColonistLimitTiers.Remove(colony);
+					}
+					continue;
+				}
+
+				// above limit. send out warnings at first
+				Log.Write($"Colony {colony.Name} is at {colony.Followers.Count} colonists. Limit is {effectiveLimit} for difficulty {difficultyIndex}");
+				if (!ColonyColonistLimitTiers.ContainsKey(colony)) {
+					ColonyColonistLimitTiers[colony] = 0;
+				}
+				int warnCount = ColonyColonistLimitTiers[colony];
+				if (warnCount < ColonyColonistLimitTierWarnTimes && owner.ConnectionState == Players.EConnectionState.Connected) {
+					Chat.Send(owner, $"<color=yellow>{colony.Name} is above the colonist limit ({effectiveLimit}) for your difficulty setting. Please increase zombie spawn level!</color>");
+					ColonyColonistLimitTiers[colony] += 1; // inc warning count
+				} else {
+					Chat.Send(owner, $"<color=red>{colony.Name} is still above the colonist limit ({effectiveLimit}) for your difficulty setting. Killing colonists.</color>");
+					int killed = 0;
+					List<NPCBase> cachedFollowers = new List<NPCBase>(colony.Followers);
+					int j = cachedFollowers.Count - 1;
+					while (colony.Followers.Count > effectiveLimit && total_killed < ColonistLimitMaxKillPerIteration) {
+						cachedFollowers[j--].OnDeath();
+						killed++;
+						total_killed++;
+					}
+					Log.Write($"Killed {killed} colonist from {colony.Name}, owner is {owner.Name}");
+
+					if (colony.Followers.Count <= effectiveLimit) {
+						ColonyColonistLimitTiers.Remove(colony);
+					}
+				}
+			}
+			Log.Write($"Colony difficulty/tier limit check: killed {total_killed} in total");
+
+			// queue the next iteration
+			ThreadManager.InvokeOnMainThread(delegate {
+				PerformColonistPerColonyLimitCheck();
+			}, ColonyColonistLimitTierCheckSeconds);
 		}
 
 		[ModLoader.ModCallback (ModLoader.EModCallbackType.OnAutoSaveWorld, NAMESPACE + ".OnAutoSaveWorld")]
