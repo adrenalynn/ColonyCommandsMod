@@ -47,6 +47,7 @@ namespace ColonyCommands {
 		static int NpcKillsJailThreshold;
 		static int NpcKillsKickThreshold;
 		static int NpcKillsBanThreshold;
+		static bool EnableWarpCommand;
 		static Dictionary<Players.Player, int> KillCounter = new Dictionary<Players.Player, int>();
 
 		static string ConfigFilepath {
@@ -94,7 +95,6 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new TravelThereChatCommand());
 			CommandManager.RegisterCommand(new TravelRemoveChatCommand());
 			CommandManager.RegisterCommand(new WarpBannerChatCommand());
-			CommandManager.RegisterCommand(new WarpChatCommand());
 			CommandManager.RegisterCommand(new WarpPlaceChatCommand());
 			CommandManager.RegisterCommand(new WarpSpawnChatCommand());
 			CommandManager.RegisterCommand(new WhisperChatCommand());
@@ -114,6 +114,9 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new MuteChatCommand());
 			CommandManager.RegisterCommand(new UnmuteChatCommand());
 			CommandManager.RegisterCommand(new ListPlayerChatCommand());
+			if (EnableWarpCommand) {
+				CommandManager.RegisterCommand(new WarpChatCommand());
+			}
 			return;
 		}
 
@@ -357,6 +360,9 @@ namespace ColonyCommands {
 					jsonConfig.TryGetAsOrDefault("ColonyColonistLimitTierCheckSeconds", out ColonyColonistLimitTierCheckSeconds, 63f);
 					jsonConfig.TryGetAsOrDefault("ColonyColonistLimitTierWarnTimes", out ColonyColonistLimitTierWarnTimes, 3);
 				}
+
+				// check warp command option for compatibility with other mods
+				jsonConfig.TryGetAsOrDefault("EnableWarpCommand", out EnableWarpCommand, true);
 			} else {
 				Save();
 				Log.Write ($"Could not find {ConfigFilepath} file, created default one");

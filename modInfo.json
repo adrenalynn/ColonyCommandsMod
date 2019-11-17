@@ -10,6 +10,7 @@
 	],
 	"patchnotes": [
 		{ "version": "0.7.8", "notes": [
+				"config option EnableWarpCommand to disable the /warp command",
 				"removed alias /home from /warpbanner; other mods already use it",
 				"config option OnlineBackupIntervalHours (default 0) to automatically create backups",
 				"optional colonists per colony limit. Based on player permission tier and zombie spawn difficulty"

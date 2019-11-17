@@ -8,5 +8,6 @@
   "BannerProtectionRangeZ" : 50,
   "NpcKillsJailThreshold" : 2,
   "NpcKillsKickThreshold" : 5,
-  "NpcKillsBanThreshold" : 10
+  "NpcKillsBanThreshold" : 10,
+  "EnableWarpCommand": true
 }
