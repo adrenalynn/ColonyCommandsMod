@@ -4,7 +4,7 @@ zipname = $(modname)-$(version).zip
 dllname = $(modname).dll
 version = $(shell cat modInfo.json | awk '/"version"/ {print $$3}' | head -1 | sed 's/[",]//g')
 zip_files_extra = announcements.example.json antigrief-config.example.json chatcolors.example.json modInfo.json LICENSE README.md
-build_dir = adrenalynn/$(modname)
+build_dir = $(modname)
 gamedir = /local/games/Steam/steamapps/common/Colony\ Survival
 
 $(dllname): src/*.cs
@@ -37,8 +37,8 @@ checkjson: *.json
 	find . -type f -name "*.json" | while read f; do echo $$f; json_pp <$$f >/dev/null; done
 
 serverlog:
-	less $(gamedir)/logs/server/$$(ls -1rt $(gamedir)/logs/server | tail -1)
+	less $(gamedir)/gamedata/logs/server/$$(ls -1rt $(gamedir)/gamedata/logs/server | tail -1)
 
 clientlog:
-	less $(gamedir)/logs/client/$$(ls -1rt $(gamedir)/logs/client | tail -1)
+	less $(gamedir)/gamedata/logs/client/$$(ls -1rt $(gamedir)/gamedata/logs/client | tail -1)
 

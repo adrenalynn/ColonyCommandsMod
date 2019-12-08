@@ -1,14 +1,19 @@
 [
 {
-	"name" : "colony.commands",
-	"namepretty" : "Colony Commands",
+	"name" : "Colony Commands",
+	"description" : "anti-grief protection and admin commands",
 	"version" : "0.7.8",
 	"dllpath" : "ColonyCommands.dll",
-	"enabled" : true,
+	"isoptional" : true,
+	"enableddefault" : true,
 	"compatibleversions" : [
-		"0.7.0"
+		"0.7.1"
 	],
 	"patchnotes": [
+		{ "version": "0.7.9", "notes": [
+				"updated for CS 0.7.1"
+			]
+		},
 		{ "version": "0.7.8", "notes": [
 				"config option EnableWarpCommand to disable the /warp command",
 				"removed alias /home from /warpbanner; other mods already use it",
