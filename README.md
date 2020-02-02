@@ -17,7 +17,7 @@ Players are also able to whitelist friends by writing **/antigrief banner [frien
 Last but not least players with master permission **mods.scarabol.antigrief** are able to define custom protected areas.
 Use **/antigrief area 10 10** to restrict regular players from changing blocks in an area 10 blocks around your current position.
 
-To **disable anti-grief** in case you play with friends only, just set the protection ranges in the *protection-ranges.json* file in your savegame folder to *-1* each. The message on joining the server will still show up, but it has no effect then.
+To **disable anti-grief** in case you play with friends only, just set the protection ranges in the *antigrief-config.json* file in your savegame folder to *-1* each. The message on joining the server will still show up, but it has no effect then.
 
 ## Activity-Tracker
 
@@ -37,6 +37,8 @@ See *announcements.example.json* and place it in your savegame folder, like */ga
 This mod can set a maximum for each players colonists number. Each colonist beyond the limit will be killed. By default the limitation is disabled.
 
 Players with **mods.scarabol.commands.colonycap** permission can use **/colonycap [max-number-of-colonists] [check-interval-delay]** to configure a limit or **/colonycap -1** to disable the limitation.
+
+It is also possible to use different colonist limits based on player tier (group) and even colonist limits per colony and difficulty settings.
 
 ## Fast Travel System
 
@@ -154,11 +156,9 @@ To allow players killing themselfes permission <b>mods.scarabol.commands.killpla
 To allow players killing their own colonists permission <b>mods.scarabol.commands.killnpcs.self</b> can be given.</dd>
 <dt>/inactive [days]</dt>
 <dd>Requires permission: <b>mods.scarabol.commands.inactive</b><br>Lists all players, who have not logged in or out since the last number of days.</dd>
-<dt>/purgeall [days]</dt>
-<dd>Requires permission: <b>mods.scarabol.commands.purgeall</b><br>Kills all NPCs and removes banner for each player, who has not logged in or out since the last number of days.</dd>
-<dt>/trashplayer [playername] [itemname] [amount]</dt>
-<dd>Requires permission: <b>mods.scarabol.commands.trashplayer</b><br>Removes the given amount and type of items from the given players stockpile and inventory. The playername and itemname can be set to 'all', which is also the default value for amount.<br><b>Note: For safety reasons you can't use /trashplayer all all all</b></dd>
 <dt>/areashow</dt>
+<dd>Toggle command to view all area jobs from others players, too.<br>Permission: <b>mods.scarabol.commands.areashow</b></dd>
+<dt>/customarea</dt>
 <dd>Checks if the player is inside a custom protection area and will print its coordinates. If not inside an area it will print the closest area nearby instead</dd>
 <dt>/spawnnpc {number}</dt>
 <dd>Requires permission: <b>mods.scarabol.commands.npcandbeds</b><br>
@@ -172,8 +172,9 @@ For admin staff only. Remove the banner closest to you, if it is the last banner
 <dd><b>/purgebanner colony</b>purge a whole colony at once</dd>
 <dd><b>/purgebanner [playername]</b>remove all banners/colonyaccess for a player.</dd>
 <dt>/purgebanner all [range]</dt>
+<dt>/purgebanner days [inactive]</dt>
 <dd>Requires permission: <b>mods.scarabol.purgeallbanner</b><br>
-Purge <b>all</b> banners within the given range. This command can be dangerous</dd>
+Purge <b>all</b> banners within the given range. With the second form all banners for inactive players. This command can be dangerous</dd>
 </dl>
 
 ## Installation
