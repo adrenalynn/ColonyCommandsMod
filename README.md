@@ -39,6 +39,9 @@ This mod can set a maximum for each players colonists number. Each colonist beyo
 Players with **mods.scarabol.commands.colonycap** permission can use **/colonycap [max-number-of-colonists] [check-interval-delay]** to configure a limit or **/colonycap -1** to disable the limitation.
 
 It is also possible to use different colonist limits based on player tier (group) and even colonist limits per colony and difficulty settings.
+Add **ColonistCapacityTiers** to *antigrief-config.json* as an array with the different tier. The tiers have to be assigned to groups as a permission **mods.scarabol.commands.colonistcapacity.tier1** .tier2 and so on.
+
+For limits per colony and tier add **ColonistLimitsColonyDifficultyTiers** to *antigrief-config.json*. It uses the same permission tiers as above but for each tier you can define an array of limits which is based on the colony difficulty settings, aka number of zombie spawns. For both day and night zombies they range from 'none' to 'very high' (1-5). Those are added together as difficulty so there are 10 possible difficulty settings.
 
 ## Fast Travel System
 
@@ -60,6 +63,9 @@ Use **/mute [playername] [minutes]** to block a player from EVERY chatting for c
 After timeout the player is automatically unblocked or one can use **/unmute [playername]** to remove the blocking manually.
 
 Muting and Unmuting players requires the **mods.scarabol.commands.mute** permission.
+
+## Online Backup
+Add **OnlineBackupIntervalHours** to *antigrief-config.json* to enable a regular online backup. Please note that a regular offline backup is still highly recommended!
 
 ## Jail System
 
@@ -126,7 +132,8 @@ The other variant of this command is <b>/help admin</b> which list all admin com
 <dd>Requires no permission<br>Transfers the given amount of items from your stockpile to the other players stockpile.<br>Example: /trade MyFriend planks 100</dd>
 <dt>/trash [itemname] [amount]</dt>
 <dd>Requires no permission<br>Deletes number of items from your stockpile and inventory.</dd>
-
+<dt>/top [c|colony|p|player] {score|food|colonists|time|itemtype}</dt>
+<dd>Print the top 10 score, either player or colony based. Default scores by colony. The "score" type is calculated as happiness times colonists. To hide a specific player or group from scoring you can add the permission <b>mods.scarabol.commands.hidefromtopcmd</b> to them.</dd>
 <dt>/warp [targetplayername]</dt>
 <dd>Requires permission: <b>mods.scarabol.commands.warp.self</b><br>Warps to the given playernames position.</dd>
 <dt>/warp [targetplayername] [teleportplayername]</dt>
