@@ -40,11 +40,22 @@ namespace ColonyCommands
 			} else {
 				string nameColor = (from s in Colors
 						where PermissionsManager.HasPermission (causedBy, AntiGrief.MOD_PREFIX + "betterchat.name." + s.Name)
-						select s.Color).FirstOrDefault ();
+						select s.Color).FirstOrDefault();
 				string textColor = (from s in Colors
 						where PermissionsManager.HasPermission (causedBy, AntiGrief.MOD_PREFIX + "betterchat.text." + s.Name)
-						select s.Color).FirstOrDefault ();
-				Chat.SendToConnected ($"[<color={nameColor}>{causedBy.Name}</color>]: <color={textColor}>{chat}</color>");
+						select s.Color).FirstOrDefault();
+				string fulltext;
+				if (!string.IsNullOrEmpty(nameColor)) {
+					fulltext = $"[<color={nameColor}>{causedBy.Name}</color>]: ";
+				} else {
+					fulltext = $"[{causedBy.Name}]: ";
+				}
+				if (!string.IsNullOrEmpty(textColor)) {
+					fulltext += $"<color={textColor}>{chat}</color>";
+				} else {
+					fulltext += $"{chat}";
+				}
+				Chat.SendToConnected(fulltext);
 			}
 			return true;
 		}

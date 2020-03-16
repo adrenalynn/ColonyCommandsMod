@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.7.9",
+	"version" : "0.7.10",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,10 @@
 		"0.7.1"
 	],
 	"patchnotes": [
+		{ "version": "0.7.10", "notes": [
+				"fixed chatcolors"
+			]
+		},
 		{ "version": "0.7.9", "notes": [
 				"updated for CS 0.7.1"
 			]
