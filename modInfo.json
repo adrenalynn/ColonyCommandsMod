@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.7.10",
+	"version" : "0.7.11",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,11 @@
 		"0.7.1"
 	],
 	"patchnotes": [
+		{ "version": "0.7.11", "notes": [
+				"fixed /warpspawn to take the real spawn point",
+				"/purgebanner failed on colonies without banner"
+			]
+		},
 		{ "version": "0.7.10", "notes": [
 				"fixed chatcolors"
 			]
