@@ -128,6 +128,11 @@ namespace ColonyCommands
 		{
 			int i = 0;
 			foreach (Colony colony in target.Colonies) {
+				if (colony.Banners.Length == 0) {
+					Log.Write($"Colony {colony.Name} does not have any banners!");
+					continue;
+				}
+				Log.Write($"Purging colony {colony.Name} from player {target.Name}");
 				if (colony.Owners.Length == 1) {
 					ServerManager.ClientCommands.DeleteColonyAndBanner(causedBy, colony, colony.Banners[0].Position);
 				} else {
