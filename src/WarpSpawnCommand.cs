@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Pipliz;
 using Chatting;
 using Chatting.Commands;
-using TerrainGeneration;
 
 namespace ColonyCommands
 {
@@ -37,7 +36,7 @@ namespace ColonyCommands
         }
       }
 
-      Teleport.TeleportTo (TeleportPlayer, ServerManager.TerrainGenerator.GetDefaultSpawnLocation().Vector);
+      Teleport.TeleportTo (TeleportPlayer, ServerManager.GetSpawnPoint().Position.Vector);
       return true;
     }
   }
