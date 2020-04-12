@@ -26,8 +26,8 @@ namespace ColonyCommands {
 		{
 			// avoid warping loop. Player needs to move outside the warp range first
 			if (warpedPlayers.ContainsKey(causedBy)) {
-				if (Pipliz.Math.ManhattanDistance(causedBy.VoxelPosition, warpedPlayers[causedBy]) > DefaultWarpRange * 2 &&
-					Pipliz.Math.ManhattanDistance(causedBy.VoxelPosition, TravelPoints[warpedPlayers[causedBy]]) > DefaultWarpRange * 2) {
+				if (Distance(causedBy.VoxelPosition, warpedPlayers[causedBy]) > DefaultWarpRange * 2 &&
+					Distance(causedBy.VoxelPosition, TravelPoints[warpedPlayers[causedBy]]) > DefaultWarpRange * 2) {
 					warpedPlayers.Remove(causedBy);
 				}
 				return;
@@ -35,7 +35,7 @@ namespace ColonyCommands {
 
 			// check if at a travel point
 			foreach (Vector3Int point in TravelPoints.Keys) {
-				if (Pipliz.Math.ManhattanDistance(causedBy.VoxelPosition, point) <= DefaultWarpRange) {
+				if (Distance(causedBy.VoxelPosition, point) <= DefaultWarpRange) {
 					warpedPlayers.Add(causedBy, point);
 					Helper.TeleportPlayer(causedBy, TravelPoints[point].Vector);
 					break;
@@ -48,8 +48,8 @@ namespace ColonyCommands {
 		{
 			// check for duplicates
 			foreach (Vector3Int point in TravelPoints.Keys) {
-				if (Pipliz.Math.ManhattanDistance(point, source) < DefaultWarpRange * 2 ||
-					Pipliz.Math.ManhattanDistance(point, target) < DefaultWarpRange * 2) {
+				if (Distance(point, source) < DefaultWarpRange * 2 ||
+					Distance(point, target) < DefaultWarpRange * 2) {
 					return false;
 				}
 			}
@@ -69,7 +69,7 @@ namespace ColonyCommands {
 			Vector3Int source = new Vector3Int();
 			bool found = false;
 			foreach (Vector3Int point in TravelPoints.Keys) {
-				if (Pipliz.Math.ManhattanDistance(point, pos) <= DefaultWarpRange * 2) {
+				if (Distance(point, pos) <= DefaultWarpRange * 2) {
 					source = point;
 					found = true;
 					break;
@@ -144,6 +144,12 @@ namespace ColonyCommands {
 			}
 
 			return;
+		}
+
+		// calculate distance as int
+		public static int Distance(Vector3Int a, Vector3Int b)
+		{
+			return (int)System.Math.Sqrt(System.Math.Pow(a.x - b.x, 2) + System.Math.Pow(a.y - b.y, 2) + System.Math.Pow(a.z - b.z, 2));
 		}
 
 	}	// class
