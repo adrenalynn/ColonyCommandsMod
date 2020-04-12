@@ -353,7 +353,7 @@ namespace ColonyCommands {
 			Save();
 
 			if (target.ConnectionState == Players.EConnectionState.Connected) {
-				Helper.TeleportPlayer(target, ServerManager.TerrainGenerator.GetDefaultSpawnLocation().Vector, true);
+				Helper.TeleportPlayer(target, ServerManager.GetSpawnPoint().Position.Vector, true);
 				Chat.Send(target, "<color=yellow>You did your time and are released from Jail</color>");
 			}
 

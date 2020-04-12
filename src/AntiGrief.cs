@@ -146,8 +146,8 @@ namespace ColonyCommands {
 			}
 
 			// check spawn area
-			int ox = playerPos.x - ServerManager.TerrainGenerator.GetDefaultSpawnLocation().x;
-			int oz = playerPos.z - ServerManager.TerrainGenerator.GetDefaultSpawnLocation().z;
+			int ox = playerPos.x - ServerManager.GetSpawnPoint().Position.x;
+			int oz = playerPos.z - ServerManager.GetSpawnPoint().Position.z;
 			if (((ox >= 0 && ox <= SpawnProtectionRangeXPos) || (ox < 0 && ox >= -SpawnProtectionRangeXNeg)) && ((oz >= 0 && oz <= SpawnProtectionRangeZPos) || (oz < 0 && oz >= -SpawnProtectionRangeZNeg))) {
 				if (!PermissionsManager.HasPermission(causedBy, PERMISSION_SPAWN_CHANGE)) {
 					if (causedBy.ConnectionState == Players.EConnectionState.Connected) {

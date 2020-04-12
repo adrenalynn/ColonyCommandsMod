@@ -42,7 +42,7 @@ namespace ColonyCommands
       ThreadManager.InvokeOnMainThread (delegate () {
         long actualId;
         if (RescueOperations.TryGetValue (causedBy, out actualId) && actualId == rescueId) {
-          Teleport.TeleportTo (causedBy, ServerManager.TerrainGenerator.GetDefaultSpawnLocation().Vector);
+          Teleport.TeleportTo (causedBy, ServerManager.GetSpawnPoint().Position.Vector);
           Chat.Send (causedBy, "Thank you for your patience. Have a nice day!");
         }
       }, 60.0f);
