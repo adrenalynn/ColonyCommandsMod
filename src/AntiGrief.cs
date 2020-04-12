@@ -91,9 +91,6 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new TradeChatCommand());
 			CommandManager.RegisterCommand(new TrashChatCommand());
 			CommandManager.RegisterCommand(new TravelChatCommand());
-			CommandManager.RegisterCommand(new TravelHereChatCommand());
-			CommandManager.RegisterCommand(new TravelThereChatCommand());
-			CommandManager.RegisterCommand(new TravelRemoveChatCommand());
 			CommandManager.RegisterCommand(new WarpBannerChatCommand());
 			CommandManager.RegisterCommand(new WarpPlaceChatCommand());
 			CommandManager.RegisterCommand(new WarpSpawnChatCommand());
@@ -114,9 +111,6 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new MuteChatCommand());
 			CommandManager.RegisterCommand(new UnmuteChatCommand());
 			CommandManager.RegisterCommand(new ListPlayerChatCommand());
-			if (EnableWarpCommand) {
-				CommandManager.RegisterCommand(new WarpChatCommand());
-			}
 			return;
 		}
 
@@ -245,7 +239,7 @@ namespace ColonyCommands {
 		{
 			Load();
 			JailManager.Load();
-			WaypointManager.Load();
+			TravelManager.Load();
 			CheckColonistLimit();
 			if (OnlineBackupIntervalHours > 0) {
 				Log.Write($"Found online backup interval setting {OnlineBackupIntervalHours}h");
@@ -363,6 +357,14 @@ namespace ColonyCommands {
 
 				// check warp command option for compatibility with other mods
 				jsonConfig.TryGetAsOrDefault("EnableWarpCommand", out EnableWarpCommand, true);
+				if (EnableWarpCommand) {
+					Log.Write("Enabling /warp command");
+					CommandManager.RegisterCommand(new WarpChatCommand());
+				}
+
+				int warpRange;
+				jsonConfig.TryGetAsOrDefault("DefaultWarpRange", out warpRange, 2);
+				TravelManager.DefaultWarpRange = warpRange;
 			} else {
 				Save();
 				Log.Write ($"Could not find {ConfigFilepath} file, created default one");
@@ -438,6 +440,7 @@ namespace ColonyCommands {
 				jsonCustomAreas.AddToArray (customArea.ToJSON ());
 			}
 			jsonConfig.SetAs ("CustomAreas", jsonCustomAreas);
+			jsonConfig.SetAs("DefaultWarpRange", TravelManager.DefaultWarpRange);
 
 			JSON.Serialize (ConfigFilepath, jsonConfig, 2);
 		}
