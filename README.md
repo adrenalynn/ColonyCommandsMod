@@ -45,13 +45,13 @@ For limits per colony and tier add **ColonistLimitsColonyDifficultyTiers** to *a
 
 ## Fast Travel System
 
-This allows all players (no permission required) to use **/travel** to warp themself from a start-point to the travel path end-point.
+When a travel path is set up, a player approaching the spot gets automatically warped to the end point.
 
-Creating travel paths requires permission **mods.scarabol.commands.travelpaths**
+Creating travel paths requires permission **mods.scarabol.commands.travelpaths**. Edit *DefaultWarpRange* in *antigrief-config.json* to change the range for warping spots (how close a player has to be).
 
-Use **/travelhere** to start a travel path.
+Use **/travel** to start a travel path and type it again to set the end point.
 
-Use **/travethere** to set the end-point of a travel path.
+Use **/travel start** to reset the start point and **/travel remove** near a travel path to remove it.
 
 ## Whispering
 
