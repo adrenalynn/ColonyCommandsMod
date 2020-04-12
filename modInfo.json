@@ -11,7 +11,9 @@
 	],
 	"patchnotes": [
 		{ "version": "0.7.12", "notes": [
-				"the travel system now automatically warps players"
+				"the travel system now automatically warps players",
+				"fix some more occurences of the default spawn point",
+				"use real distance for warp range calculation"
 			]
 		},
 		{ "version": "0.7.11", "notes": [
