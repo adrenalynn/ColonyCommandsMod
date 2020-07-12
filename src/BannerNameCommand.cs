@@ -40,13 +40,23 @@ namespace ColonyCommands
 
 			if (closestBanner != null) {
 				string owners = "";
-				foreach (Players.Player owner in closestBanner.Colony.Owners) {
-					if (!owners.Equals("")) {
-						owners += ", ";
-					}
-					owners += owner.Name;
+				string name = "";
+				if (closestBanner.Colony == null || closestBanner.Colony.Name == null) {
+					name = "(invalid)";
+					owners = "(invalid)";
+				} else {
+					name = closestBanner.Colony.Name;
 				}
-				Chat.Send(causedBy, $"Closest banner is at {closestBanner.Position.x},{closestBanner.Position.z}. {shortestDistance} blocks away. It belongs to colony {closestBanner.Colony.Name} owned by {owners}");
+
+				if (closestBanner.Colony != null && closestBanner.Colony.Owners != null) {
+					foreach (Players.Player owner in closestBanner.Colony.Owners) {
+						if (!owners.Equals("")) {
+							owners += ", ";
+						}
+						owners += owner.Name;
+					}
+				}
+				Chat.Send(causedBy, $"Closest banner is at {closestBanner.Position.x},{closestBanner.Position.z}. {shortestDistance} blocks away. It belongs to colony {name} owned by {owners}");
 			}
 			return true;
 		}
