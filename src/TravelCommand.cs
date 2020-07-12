@@ -44,6 +44,7 @@ namespace ColonyCommands
 			} else {
 				if (TravelManager.addPath(causedBy, cachedStartpoint, causedBy.VoxelPosition)) {
 					Chat.Send(causedBy, $"Created a new travel path between {cachedStartpoint} and {causedBy.VoxelPosition}");
+					cachedStartpoint = Vector3Int.invalidPos;
 				} else {
 					Chat.Send(causedBy, "Could not create travel path. Too close to an existing one?");
 				}
