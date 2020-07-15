@@ -25,14 +25,19 @@ namespace ColonyCommands
       }
     }
 
-    public bool TryDoCommand (Players.Player causedBy, string chattext, List<string> splits)
+    public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
     {
-	  if (!splits[0].Equals ("/stuck")) {
-		return false;
+		if (!splits[0].Equals("/stuck")) {
+			return false;
 		}
-      if (causedBy == null || causedBy.ID == NetworkID.Server) {
-        return true;
-      }
+		if (causedBy == null || causedBy.ID == NetworkID.Server) {
+			return true;
+		}
+		if (JailManager.IsPlayerJailed(causedBy)) {
+			Chat.Send(causedBy, "Imprisoned is not stuck!");
+			return true;
+		}
+
       RescueOperations.Remove (causedBy);
       StuckPositions.Remove (causedBy);
       var rescueId = Pipliz.Random.NextLong ();

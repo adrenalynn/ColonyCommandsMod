@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Pipliz;
 using Pipliz.JSON;
 using Chatting;
 using TerrainGeneration;
 using UnityEngine;
+using Shared.Networking;
 
 namespace ColonyCommands {
 
@@ -26,6 +28,10 @@ namespace ColonyCommands {
 		public static uint GRACE_ESCAPE_ATTEMPTS = 3;
 		public const uint DEFAULT_RANGE = 5;
 
+		private static string prisonerGroup = "prisoner";
+		private static bool restoreGroupsOnRelease = true;
+		private static string defaultGroup = "peasant";
+
 		// Jail record per player
 		private class JailRecord {
 			public int gracePeriod { get; set; }
@@ -34,9 +40,9 @@ namespace ColonyCommands {
 			public long jailDuration { get; set; }
 			public Players.Player jailedBy { get; set; }
 			public string jailReason { get; set; }
-			public List<string> revokedPermissions { get; set; }
+			public List<string> groups { get; set; }
 
-			public JailRecord(long time, long duration, Players.Player causedBy, string reason, List<string> permissions)
+			public JailRecord(long time, long duration, Players.Player causedBy, string reason, List<string> groups)
 			{
 				this.gracePeriod = 2;
 				this.escapeAttempts = 0;
@@ -44,7 +50,7 @@ namespace ColonyCommands {
 				this.jailDuration = duration;
 				this.jailedBy = causedBy;
 				this.jailReason = reason;
-				this.revokedPermissions = permissions;
+				this.groups = groups;
 			}
 		}
 
@@ -63,18 +69,6 @@ namespace ColonyCommands {
 				this.reason = reason;
 			}
 		}
-
-		// Permission list to revoke during jail time
-		static string[] permissionList = {
-			AntiGrief.MOD_PREFIX + "warp.banner",
-			AntiGrief.MOD_PREFIX + "warp.player",
-			AntiGrief.MOD_PREFIX + "warp.self",
-			AntiGrief.MOD_PREFIX + "warp.place",
-			AntiGrief.MOD_PREFIX + "warp.spawn",
-			AntiGrief.MOD_PREFIX + "warp.spawn.self",
-			"pipliz.setflight",
-			"cheats.enable",
-		};
 
 		static string ConfigfilePath {
 			get {
@@ -102,16 +96,34 @@ namespace ColonyCommands {
 
 			Helper.TeleportPlayer(target, jailPosition, true);
 
-			List<string> permissions = new List<string>();
-			foreach (string permission in permissionList) {
-				if (PermissionsManager.HasPermission(target, permission)) {
-					permissions.Add(permission);
-					// PermissionsManager.RemovePermissionOfUser(causedBy, target, permission);
+			// move to prisoner permissions group
+			List<string> groups = new List<string>();
+			PermissionsManager.PermissionsGroup pGroup;
+			if (PermissionsManager.Users.TryGetValue(target.ID, out pGroup)) {
+				try {
+					List<string> playerGroups = pGroup.GetType().GetField("ParentGroups", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(pGroup) as List<string>;
+					groups.AddRange(playerGroups);
+				} catch {
+					groups.Add(defaultGroup);
+				}
+			}
+			PermissionsManager.SetGroupOfUser((Players.Player)null, target, prisonerGroup);
+
+			// remove flight state
+			bool flightState = target.GetTempValues(false).GetOrDefault("pipliz.setflight", false);
+			if (flightState) {
+				// target.GetTempValues(true).Set("pipliz.setflight", false);
+				target.GetTempValues(false).Remove("pipliz.setflight");
+				target.ClearTempValuesIfEmpty();
+				using (ByteBuilder byteBuilder = ByteBuilder.Get()) {
+					byteBuilder.Write(ClientMessageType.SetFlight);
+					byteBuilder.Write(false);
+					NetworkWrapper.Send(byteBuilder, target, NetworkMessageReliability.ReliableWithBuffering);
 				}
 			}
 
-			long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000;
 			// create/add history record
+			long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000;
 			JailLogRecord logRecord = new JailLogRecord(now, jailtime * 60, causedBy, reason);
 			List<JailLogRecord> playerRecords;
 			if (jailLog.TryGetValue(target, out playerRecords)) {
@@ -124,7 +136,7 @@ namespace ColonyCommands {
 			SaveLogFile();
 
 			// create jail record
-			JailRecord record = new JailRecord(now, jailtime * 60, causedBy, reason, permissions);
+			JailRecord record = new JailRecord(now, jailtime * 60, causedBy, reason, groups);
 			jailedPersons.Add(target, record);
 			Save();
 
@@ -235,6 +247,19 @@ namespace ColonyCommands {
 					GRACE_ESCAPE_ATTEMPTS = graceEscapeAttempts;
 				}
 
+				string groupname;
+				if (jsonConfig.TryGetAs("prisonerGroup", out groupname)) {
+					prisonerGroup = groupname;
+				}
+				if (jsonConfig.TryGetAs("defaultGroup", out groupname)) {
+					defaultGroup = groupname;
+				}
+
+				bool restoreGroups;
+				if (jsonConfig.TryGetAs("restoreGroupsOnRelease", out restoreGroups)) {
+					restoreGroupsOnRelease = restoreGroups;
+				}
+
 				JSONNode players;
 				jsonConfig.TryGetAs("players", out players);
 				foreach (JSONNode node in players.LoopArray()) {
@@ -244,13 +269,13 @@ namespace ColonyCommands {
 					string causedByName = node.GetAs<string>("jailedBy");
 					string reason = node.GetAs<string>("jailReason");
 
-					List<string> permissions = new List<string>();
-					//List<string> permissions = node.GetAs<List<string>>("permissions");  // TODO
-					// JSONNode jsonPerm;
-					// node.TryGetAs("permissions", out jsonPerm);
-					// foreach (string perm in jsonPerm.LoopArray()) {
-					//   permissions.Add(perm);
-					// }
+					List<string> groups = new List<string>();
+					JSONNode jsonGroups;
+					node.TryGetAs("groups", out jsonGroups);
+					foreach (JSONNode gnode in jsonGroups.LoopArray()) {
+						string grp = gnode.GetAs<string>();
+						groups.Add(grp);
+					}
 
 					Players.Player target;
 					Players.Player causedBy;
@@ -259,7 +284,7 @@ namespace ColonyCommands {
 					// causedBy can be null in case of server actions, but target has to be a valid player
 					PlayerHelper.TryGetPlayer(causedByName, out causedBy, out error, true);
 					if (PlayerHelper.TryGetPlayer(PlayerName, out target, out error, true)) {
-						JailRecord record = new JailRecord(jailTimestamp, jailDuration, causedBy, reason, permissions);
+						JailRecord record = new JailRecord(jailTimestamp, jailDuration, causedBy, reason, groups);
 						jailedPersons.Add(target, record);
 					}
 				}
@@ -270,6 +295,13 @@ namespace ColonyCommands {
 
 			LoadLogFile();
 			CheckAndReleasePlayers();
+
+			// check if prisoner permission group exists or try to create it
+			if (!PermissionsManager.Groups.ContainsKey(prisonerGroup)) {
+				PermissionsManager.PermissionsGroup pGroup = new PermissionsManager.PermissionsGroup();
+				PermissionsManager.RegisterGroup(prisonerGroup, pGroup);
+				Log.Write($"Registered new permissions group for prisoners: {prisonerGroup}");
+			}
 
 			return;
 		}
@@ -300,6 +332,9 @@ namespace ColonyCommands {
 
 			jsonConfig.SetAs("defaultJailTime", DEFAULT_JAIL_TIME);
 			jsonConfig.SetAs("graceEscapeAttempts", GRACE_ESCAPE_ATTEMPTS);
+			jsonConfig.SetAs("prisonerGroup", prisonerGroup);
+			jsonConfig.SetAs("defaultGroup", defaultGroup);
+			jsonConfig.SetAs("restoreGroupsOnRelease", restoreGroupsOnRelease);
 
 			JSONNode jsonPlayers = new JSONNode(NodeType.Array);
 			foreach (KeyValuePair<Players.Player, JailRecord> kvp in jailedPersons) {
@@ -316,12 +351,13 @@ namespace ColonyCommands {
 					jsonRecord.SetAs("jailedBy", "Server");
 				}
 
-				// JSONNode permissions = new JSONNode(NodeType.Array);
-				// foreach (string perm in record.revokedPermissions) {
-				//   permissions.AddToArray(perm);
-				// }
-				//jsonRecord.SetAs("permissions", record.revokedPermissions.ToString());  // TODO
-				//jsonRecord.SetAs("permissions", "none");
+				JSONNode groups = new JSONNode(NodeType.Array);
+				foreach (string grp in record.groups) {
+					JSONNode gnode = new JSONNode();
+					gnode.SetAs<string>(grp);
+					groups.AddToArray(gnode);
+				}
+				jsonRecord.SetAs("groups", groups);
 				jsonPlayers.AddToArray(jsonRecord);
 			}
 			jsonConfig.SetAs("players", jsonPlayers);
@@ -346,11 +382,20 @@ namespace ColonyCommands {
 		{
 			JailRecord record;
 			jailedPersons.TryGetValue(target, out record);
-			foreach (string permission in record.revokedPermissions) {
-				// PermissionsManager.AddPermissionToUser(causedBy, target, permission);
-			}
 			jailedPersons.Remove(target);
 			Save();
+
+			if (restoreGroupsOnRelease == true) {
+				for (int i = 0; i < record.groups.Count; i++) {
+					if (i == 0) {
+						PermissionsManager.SetGroupOfUser((Players.Player)null, target, record.groups[i]);
+					} else {
+						PermissionsManager.AddGroupToUser((Players.Player)null, target, record.groups[i]);
+					}
+				}
+			} else {
+				PermissionsManager.SetGroupOfUser((Players.Player)null, target, defaultGroup);
+			}
 
 			if (target.ConnectionState == Players.EConnectionState.Connected) {
 				Helper.TeleportPlayer(target, ServerManager.GetSpawnPoint().Position.Vector, true);

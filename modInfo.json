@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.7.12",
+	"version" : "0.7.14",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,16 @@
 		"0.7.1"
 	],
 	"patchnotes": [
+		{ "version": "0.7.14", "notes": [
+				"fixed color for /whisper",
+				"jailing does now remove all permissions from a player"
+			]
+		},
+		{ "version": "0.7.13", "notes": [
+				"fixed a bug where you could not set multiple travel paths",
+				"fixed a crash for /bannername"
+			]
+		},
 		{ "version": "0.7.12", "notes": [
 				"the travel system now automatically warps players",
 				"fix some more occurences of the default spawn point",
