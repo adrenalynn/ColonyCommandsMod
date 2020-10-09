@@ -75,7 +75,6 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new BetterChatCommand());
 			CommandManager.RegisterCommand(new ColonyCap());
 			CommandManager.RegisterCommand(new DrainChatCommand());
-			// CommandManager.RegisterCommand(new GiveAllChatCommand());
 			CommandManager.RegisterCommand(new GodChatCommand());
 			CommandManager.RegisterCommand(new InactiveChatCommand());
 			CommandManager.RegisterCommand(new ItemIdChatCommand());
