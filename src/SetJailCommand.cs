@@ -6,38 +6,46 @@ using System.Text.RegularExpressions;
 namespace ColonyCommands
 {
 
-  public class SetJailCommand : IChatCommand
-  {
+	public class SetJailCommand : IChatCommand
+	{
 
-    public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
-    {
-	  if (!splits[0].Equals("/setjail")) {
-		return false;
+		public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
+		{
+			if (!splits[0].Equals("/setjail")) {
+				return false;
+			}
+			if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "setjailposition")) {
+				return true;
+			}
+
+			if (chattext.Equals("/setjail visitor")) {
+				JailManager.setJailVisitorPosition(causedBy.Position);
+				Chat.Send(causedBy, "Jail visiting position set");
+				return true;
+			}
+
+			int x, y, z;
+			if (splits.Count == 4) {
+				if (!int.TryParse(splits[1], out x) || !int.TryParse(splits[2], out y) || !int.TryParse(splits[3], out z)) {
+					Chat.Send(causedBy, "Syntax: /setjail {x y z | range}");
+					return true;
+				}
+			} else if (splits.Count == 2) {
+				int range;
+				if (!int.TryParse(splits[1], out range)) {
+					Chat.Send(causedBy, "Syntax: /setjail {x y z | range}");
+					return true;
+				}
+				x = y = z = range;
+			} else {
+				x = y = z = JailManager.DEFAULT_RANGE;
+			}
+
+			JailManager.setJailPosition(causedBy, x, y, z);
+			Chat.Send(causedBy, $"Jail set to your current position with bounds {x} {y} {z}");
+
+			return true;
+		}
 	}
-      if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "setjailposition")) {
-        return true;
-      }
-
-      if (chattext.Equals("/setjail visitor")) {
-        JailManager.setJailVisitorPosition(causedBy.Position);
-        Chat.Send(causedBy, "Jail visiting position set");
-        return true;
-      }
-
-      var m = Regex.Match(chattext, @"/setjail (?<range>[0-9]+)");
-      if (m.Success) {
-        uint range = 0;
-        if (!uint.TryParse(m.Groups["range"].Value, out range)) {
-          Chat.Send(causedBy, "Could not parse range value");
-        }
-        JailManager.setJailPosition(causedBy, range);
-        Chat.Send(causedBy, $"Jail set to your current position with range {range}");
-      } else {
-        JailManager.setJailPosition(causedBy);
-        Chat.Send(causedBy, $"Jail set to your current position and default range {JailManager.DEFAULT_RANGE}");
-      }
-      return true;
-    }
-  }
 }
 

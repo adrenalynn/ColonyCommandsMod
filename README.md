@@ -72,7 +72,7 @@ Add **OnlineBackupIntervalHours** to *antigrief-config.json* to enable a regular
 The jail is an extension for the Anti-Grief system. Admin or staff members can throw players into jail as punishment. A jailed player can only move within the defined jail area. Should a player try to escape repeatedly his/her jail time will be automatically extended (configurable).
 Getting jailed is also available as punishment option for killing another player's colonists.
 
-Use **/setjail [range]** to define the server jail at your current position. Parameter range determines how many blocks out the border of the jail is, the default is 5.
+Use **/setjail x y z** to define the server jail at your current position. x y z defines the dimensions of the jail. 
 **Notice:** The jail will automatically create a protection area with its range. You might want to create a larger protection area instead, depending on your actual jail build.
 
 Use **/setjail visitor** to define a visitor position for people wanting to visit the jail and its inmates. This position can be outside or inside the jail, visitors are always free to move.

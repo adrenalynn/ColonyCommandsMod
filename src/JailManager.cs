@@ -16,7 +16,7 @@ namespace ColonyCommands {
 	{
 		static Vector3 jailPosition;
 		static Vector3 jailVisitorPosition;
-		static uint jailRange;
+		static Pipliz.BoundsInt prisonBox;
 		static Dictionary<Players.Player, JailRecord> jailedPersons = new Dictionary<Players.Player, JailRecord>();
 		public static Dictionary<Players.Player, List<JailLogRecord>> jailLog = new Dictionary<Players.Player, List<JailLogRecord>>();
 		public static Dictionary<Players.Player, Vector3> visitorPreviousPos = new Dictionary<Players.Player, Vector3>();
@@ -26,7 +26,7 @@ namespace ColonyCommands {
 		public static bool validVisitorPos = false;
 		public static uint DEFAULT_JAIL_TIME = 3;
 		public static uint GRACE_ESCAPE_ATTEMPTS = 3;
-		public const uint DEFAULT_RANGE = 5;
+		public const int DEFAULT_RANGE = 5;
 
 		private static string prisonerGroup = "prisoner";
 		private static bool restoreGroupsOnRelease = true;
@@ -165,14 +165,14 @@ namespace ColonyCommands {
 		}
 
 		// update/set the jail position in the world
-		public static void setJailPosition(Players.Player causedBy, uint range = DEFAULT_RANGE)
+		public static void setJailPosition(Players.Player causedBy, int x, int y, int z)
 		{
 			// if an old jail position existed remove its protection area
 			if (validJail) {
 				Pipliz.Vector3Int oldPos = new Pipliz.Vector3Int(jailPosition);
 				CustomProtectionArea oldJail = null;
 				foreach (CustomProtectionArea area in AntiGrief.CustomAreas) {
-					if (area.Equals(oldPos, range)) {
+					if (area.Contains(oldPos)) {
 						oldJail = area;
 					}
 				}
@@ -182,17 +182,20 @@ namespace ColonyCommands {
 				}
 			}
 
+			// center position
 			jailPosition.x = causedBy.Position.x;
 			jailPosition.y = causedBy.Position.y + 1;  // one block higher to prevent clipping
 			jailPosition.z = causedBy.Position.z;
-			jailRange = range;
+
+			Pipliz.Vector3Int intPos = new Pipliz.Vector3Int(causedBy.Position);
+			Pipliz.Vector3Int min = new Pipliz.Vector3Int(intPos.x - x / 2, intPos.y - y / 2, intPos.z - z / 2);
+			Pipliz.Vector3Int max = new Pipliz.Vector3Int(intPos.x + x / 2, intPos.y + y / 2, intPos.z + z / 2);
+			prisonBox = new Pipliz.BoundsInt(min, max);
+			AntiGrief.AddCustomArea(new CustomProtectionArea(intPos, x, z));
+			Chat.Send(causedBy, $"Created jail {x}x{y}x{z} and custom protection area {x*2}x{z*2}.");
+
 			validJail = true;
 			Save();
-
-			Pipliz.Vector3Int playerPos = new Pipliz.Vector3Int(causedBy.Position);
-			AntiGrief.AddCustomArea(new CustomProtectionArea(playerPos, (int)range, (int)range));
-			Chat.Send(causedBy, "Created new custom protection area");
-
 			return;
 		}
 
@@ -223,7 +226,27 @@ namespace ColonyCommands {
 					jailPosition.x = position.GetAs<float>("x");
 					jailPosition.y = position.GetAs<float>("y");
 					jailPosition.z = position.GetAs<float>("z");
-					jailRange = position.GetAs<uint>("range");
+
+					Pipliz.Vector3Int center = new Pipliz.Vector3Int(jailPosition);
+					Pipliz.Vector3Int min;
+					Pipliz.Vector3Int max;
+
+					// old format used range, ensure still loadable
+					int range;
+					position.TryGetAsOrDefault("range", out range, 0);
+					if (range > 0) {
+						min = center - range / 2;
+						max = center + range / 2;
+					} else {
+						// current version, min/max box
+						min.x = position.GetAs<int>("minx");
+						min.y = position.GetAs<int>("miny");
+						min.z = position.GetAs<int>("minz");
+						max.x = position.GetAs<int>("maxx");
+						max.y = position.GetAs<int>("maxy");
+						max.z = position.GetAs<int>("maxz");
+					}
+					prisonBox = new Pipliz.BoundsInt(min, max);
 					validJail = true;
 				} else {
 					Log.Write("Did not find a jail position, invalid config");
@@ -318,7 +341,12 @@ namespace ColonyCommands {
 				jsonPosition.SetAs("x", jailPosition.x);
 				jsonPosition.SetAs("y", jailPosition.y);
 				jsonPosition.SetAs("z", jailPosition.z);
-				jsonPosition.SetAs("range", jailRange);
+				jsonPosition.SetAs("minx", prisonBox.min.x);
+				jsonPosition.SetAs("miny", prisonBox.min.y);
+				jsonPosition.SetAs("minz", prisonBox.min.z);
+				jsonPosition.SetAs("maxx", prisonBox.max.x);
+				jsonPosition.SetAs("maxy", prisonBox.max.y);
+				jsonPosition.SetAs("maxz", prisonBox.max.z);
 				jsonConfig.SetAs("position", jsonPosition);
 			}
 
@@ -426,8 +454,8 @@ namespace ColonyCommands {
 				--record.gracePeriod;
 				return;
 			}
-			uint distance = (uint) Vector3.Distance(causedBy.Position, jailPosition);
-			if (distance > jailRange) {
+
+			if (!prisonBox.Contains(causedBy.VoxelPosition)) {
 				Helper.TeleportPlayer(causedBy, jailPosition, true);
 
 				++record.escapeAttempts;
