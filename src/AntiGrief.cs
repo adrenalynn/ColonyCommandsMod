@@ -48,6 +48,7 @@ namespace ColonyCommands {
 		static int NpcKillsKickThreshold;
 		static int NpcKillsBanThreshold;
 		static bool EnableWarpCommand;
+		public static int WarDuration = 2 * 60 * 60; // 2 hours
 		static Dictionary<Players.Player, int> KillCounter = new Dictionary<Players.Player, int>();
 
 		static string ConfigFilepath {
@@ -110,6 +111,7 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new MuteChatCommand());
 			CommandManager.RegisterCommand(new UnmuteChatCommand());
 			CommandManager.RegisterCommand(new ListPlayerChatCommand());
+			CommandManager.RegisterCommand(new WarChatCommand());
 			return;
 		}
 
@@ -240,6 +242,7 @@ namespace ColonyCommands {
 			JailManager.Load();
 			TravelManager.Load();
 			CheckColonistLimit();
+			WarManager.CheckWarStatus();
 			if (OnlineBackupIntervalHours > 0) {
 				Log.Write($"Found online backup interval setting {OnlineBackupIntervalHours}h");
 				ThreadManager.InvokeOnMainThread(delegate {
@@ -321,9 +324,10 @@ namespace ColonyCommands {
 					}
 					Log.Write ($"Loaded {CustomAreas.Count} from file");
 				}
-				jsonConfig.TryGetAsOrDefault ("NpcKillsJailThreshold", out NpcKillsJailThreshold, 2);
-				jsonConfig.TryGetAsOrDefault ("NpcKillsKickThreshold", out NpcKillsKickThreshold, 5);
-				jsonConfig.TryGetAsOrDefault ("NpcKillsBanThreshold", out NpcKillsBanThreshold, 6);
+				jsonConfig.TryGetAsOrDefault("NpcKillsJailThreshold", out NpcKillsJailThreshold, 2);
+				jsonConfig.TryGetAsOrDefault("NpcKillsKickThreshold", out NpcKillsKickThreshold, 5);
+				jsonConfig.TryGetAsOrDefault("NpcKillsBanThreshold", out NpcKillsBanThreshold, 6);
+				jsonConfig.TryGetAsOrDefault("WarDuration", out WarDuration, 2 * 60 * 60);
 
 				jsonConfig.TryGetAsOrDefault("ColonistLimit", out ColonistLimit, 0);
 				jsonConfig.TryGetAsOrDefault("ColonistCheckInterval", out ColonistLimitCheckSeconds, 30);
@@ -440,6 +444,7 @@ namespace ColonyCommands {
 			}
 			jsonConfig.SetAs ("CustomAreas", jsonCustomAreas);
 			jsonConfig.SetAs("DefaultWarpRange", TravelManager.DefaultWarpRange);
+			jsonConfig.SetAs("WarDuration", WarDuration);
 
 			JSON.Serialize (ConfigFilepath, jsonConfig, 2);
 		}
@@ -456,6 +461,11 @@ namespace ColonyCommands {
 				if (owner == killer) {
 					return;
 				}
+			}
+
+			// WAR mode: killing NPC is allowed if killer and target colony are war enabled
+			if (WarManager.IsWarEnabled(killer) && WarManager.IsWarEnabled(npc.Colony)) {
+				return;
 			}
 
 			int kills;

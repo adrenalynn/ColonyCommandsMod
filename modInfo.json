@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.7.14",
+	"version" : "0.7.15",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,11 @@
 		"0.7.1"
 	],
 	"patchnotes": [
+		{ "version": "0.7.15", "notes": [
+				"new /war command to allow colony player wars",
+				"custom jail sizes possible, like 10x50x20"
+			]
+		},
 		{ "version": "0.7.14", "notes": [
 				"fixed color for /whisper",
 				"jailing does now remove all permissions from a player"
