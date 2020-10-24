@@ -33,6 +33,7 @@ namespace ColonyCommands
 				// require active colony with colonists. To always have war two sided
 				if (causedBy.ActiveColony == null || causedBy.ActiveColony.Followers.Count < 10) {
 					Chat.Send(causedBy, "<color=red>You need to be at an active colony with colonists to start wars</color>");
+					return true;
 				}
 
 				WarManager.EnableWar(causedBy, duration);
