@@ -29,6 +29,12 @@ namespace ColonyCommands
 				if (duration < AntiGrief.WarDuration) {
 					duration = AntiGrief.WarDuration;
 				}
+
+				// require active colony with colonists. To always have war two sided
+				if (causedBy.ActiveColony == null || causedBy.ActiveColony.Followers.Count < 10) {
+					Chat.Send(causedBy, "<color=red>You need to be at an active colony with colonists to start wars</color>");
+				}
+
 				WarManager.EnableWar(causedBy, duration);
 				Chat.SendToConnectedBut(causedBy, "<color=yellow>{causedBy.Name} entered WAR mode</color>");
 				Chat.Send(causedBy, $"<color=yellow>You entered WAR mode. It will expire after {duration / 60 / 60} hours.</color>");
