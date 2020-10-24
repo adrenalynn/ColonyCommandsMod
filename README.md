@@ -94,6 +94,15 @@ No permission required
 Use **/jailrec [player]** to check the jail history records. With a player name given it will show all jail records for that player. Without player name it will show the last 10 jail actions.
 Requires permission **mods.scarabol.commands.jail**
 
+## War system
+
+The war system supports roleplay and player / colony war. Players that enable war are allowed to kill NPCs of other players that also have war enabled.
+**/war start [ 120m | 2h | 4h ]** to enable war mode. The default duration is 2 hours (can be changed by config file) and can be extended. Up to the next server restart (war mode does not get saved).
+A player needs to be at an active colony with colonists to start wars.
+**/war** Lists all players that currently have war mode enabled and their remaining time
+**/war end** Can be used by staff to end ongoing wars. Requires permission **mods.scarabol.commands.endwar**
+
+
 <dl>
 <dt>Configurable Settings</dt>
 <dd>After the first start a new file jail-config.json will be generated at the world save directory (gamedate/savegames/&lt;worldname&gt;).</dd>
