@@ -1,12 +1,33 @@
 {
-  "installation-note" : "copy this file into your savegame folder as 'gamedata/savegame/{worldname}/chatcolors.json' (remove 'example' from filename)",
-  "hint1" : "To use a chat __name__ color for a specific person/group add permission 'mods.scarabol.commands.betterchat.name.red' to it",
-  "hint2" : "To use a chat __text__ color for a specific person/group add permission 'mods.scarabol.commands.betterchat.text.red' to it",
-  "colors" : [
-    { "name" : "red" },
-    { "name" : "green" },
-    { "name" : "blue" },
-    { "name" : "epic", "hexcode" : "#a335ee" },
-    { "name" : "heirloom", "hexcode" : "#00ccff" }
-  ]
+	"install-note1" : "copy this file into your savegame folder as 'gamedata/savegame/{worldname}/chatcolors.json'",
+	"install-note2" : " remove '.example' from the filename",
+	"hint1" : "To use colors add mods.scarabol.commands.betterchat.groupname to the permissiongroups",
+	"hint2" : "For example, mods.scarabol.commands.betterchat.emperor",
+	"hint3" : "Prefix will be shown before the name, like: [God]adrenalynn",
+	"chatcolorgroups" : [
+		{
+			"groupname": "god",
+			"prefix" : "God",
+			"prefixcolor" : "red",
+			"name" : "yellow",
+			"text": "#00ccff"
+		},
+		{
+			"groupname": "emperor",
+			"prefix" : "Emperor",
+			"name" : "#a335ee",
+			"text": "white"
+		},
+		{
+			"groupname" : "king",
+			"prefix" : "King",
+			"name" : "blue",
+			"text": "white"
+		},
+		{
+			"groupname": "lord",
+			"prefix" : "Lord",
+			"name" : "heirloom"
+		}
+	]
 }

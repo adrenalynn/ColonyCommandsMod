@@ -243,6 +243,8 @@ namespace ColonyCommands {
 			TravelManager.Load();
 			CheckColonistLimit();
 			WarManager.CheckWarStatus();
+			ChatColors.LoadChatColors();
+
 			if (OnlineBackupIntervalHours > 0) {
 				Log.Write($"Found online backup interval setting {OnlineBackupIntervalHours}h");
 				ThreadManager.InvokeOnMainThread(delegate {

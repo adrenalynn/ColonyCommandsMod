@@ -15,14 +15,6 @@ namespace ColonyCommands
 	[ModLoader.ModManager]
 	public class BetterChatCommand : IChatCommand
 	{
-		static List<ChatColorSpecification> Colors = new List<ChatColorSpecification> ();
-
-		static string ConfigFilepath {
-			get {
-				return Path.Combine (Path.Combine ("gamedata", "savegames"), Path.Combine (ServerManager.WorldName, "chatcolors.json"));
-			}
-		}
-
 		public bool TryDoCommand(Players.Player causedBy, string chat, List<string> splits)
 		{
 			MuteList.Update();
@@ -34,77 +26,104 @@ namespace ColonyCommands
 			if (chat.StartsWith("/")) {
 				return false;
 			}
-			if (PermissionsManager.HasPermission (causedBy, "")) {
-				String name = causedBy != null ? causedBy.Name : "Server";
-				Chat.SendToConnected ($"[<color=red>{name}</color>]: {chat}");
-			} else {
-				string nameColor = (from s in Colors
-						where PermissionsManager.HasPermission (causedBy, AntiGrief.MOD_PREFIX + "betterchat.name." + s.Name)
-						select s.Color).FirstOrDefault();
-				string textColor = (from s in Colors
-						where PermissionsManager.HasPermission (causedBy, AntiGrief.MOD_PREFIX + "betterchat.text." + s.Name)
-						select s.Color).FirstOrDefault();
-				string fulltext;
-				if (!string.IsNullOrEmpty(nameColor)) {
-					fulltext = $"[<color={nameColor}>{causedBy.Name}</color>]: ";
-				} else {
-					fulltext = $"[{causedBy.Name}]: ";
+
+			// figure out chat color group name
+			string groupname = null;
+			foreach (string s in ChatColors.Colors.Keys) {
+				if (PermissionsManager.HasPermission(causedBy, AntiGrief.MOD_PREFIX + "betterchat." + s)) {
+					groupname = s;
+					break;
 				}
-				if (!string.IsNullOrEmpty(textColor)) {
-					fulltext += $"<color={textColor}>{chat}</color>";
-				} else {
-					fulltext += $"{chat}";
-				}
-				Chat.SendToConnected(fulltext);
 			}
+			if (string.IsNullOrEmpty(groupname)) {
+				Chat.SendToConnected(causedBy.Name + "> " + chat);
+				return true;
+			}
+			ChatColorSpecification spec = ChatColors.Colors[groupname];
+			
+			string fulltext = "";
+			if (!string.IsNullOrEmpty(spec.Prefix)) {
+				if (!string.IsNullOrEmpty(spec.PrefixColor)) {
+					fulltext = $"[<color={spec.PrefixColor}>{spec.Prefix}</color>]";
+				} else {
+					fulltext = $"[{spec.Prefix}]";
+				}
+			}
+			if (!string.IsNullOrEmpty(spec.Name)) {
+					fulltext += $"<color={spec.Name}>{causedBy.Name}</color>> ";
+			} else {
+				fulltext += causedBy.Name + "> ";
+			}
+			if (!string.IsNullOrEmpty(spec.Text)) {
+					fulltext += $"<color={spec.Text}>{chat}</color>";
+			} else {
+				fulltext += chat;
+			}
+
+			Chat.SendToConnected(fulltext);
 			return true;
 		}
+	}
 
-		[ModLoader.ModCallback (ModLoader.EModCallbackType.AfterWorldLoad, "scarabol.commands.betterchat.loadcolors")]
-		public static void AfterWorldLoad ()
-		{
-			Load ();
+	public static class ChatColors
+	{
+		public static Dictionary<string, ChatColorSpecification> Colors = new Dictionary<string, ChatColorSpecification>();
+
+		private static string ConfigFilepath {
+			get {
+				return Path.Combine(Path.Combine("gamedata", "savegames"), Path.Combine(ServerManager.WorldName, "chatcolors.json"));
+			}
 		}
 
-		public static void Load ()
+		// Load from config file (JSON)
+		public static void LoadChatColors()
 		{
+			JSONNode jsonConfig;
+			if (!JSON.Deserialize(ConfigFilepath, out jsonConfig, false)) {
+				Log.WriteError($"{ConfigFilepath} not found/not readable json");
+				return;
+			}
+
 			try {
-				JSONNode json;
-				if (JSON.Deserialize (ConfigFilepath, out json, false)) {
-					JSONNode jsonColors;
-					if (json.TryGetAs ("colors", out jsonColors) && jsonColors.NodeType == NodeType.Array) {
-						foreach (var jsonColorNode in jsonColors.LoopArray ()) {
-							string colorName;
-							if (jsonColorNode.TryGetAs ("name", out colorName)) {
-								string hexcode;
-								if (!jsonColorNode.TryGetAs ("hexcode", out hexcode)) {
-									hexcode = colorName;
-								}
-								Colors.Add (new ChatColorSpecification (colorName, hexcode));
-							} else {
-								Log.WriteError ("Color entry has no name");
-							}
+				JSONNode jsonColors;
+				if (jsonConfig.TryGetAs("chatcolorgroups", out jsonColors) && jsonColors.NodeType == NodeType.Array) {
+					foreach (JSONNode jGroup in jsonColors.LoopArray()) {
+						string groupname, prefix, prefixcolor, name, text;
+						jGroup.TryGetAs("groupname", out groupname);
+						jGroup.TryGetAs("prefix", out prefix);
+						jGroup.TryGetAs("prefixcolor", out prefixcolor);
+						jGroup.TryGetAs("name", out name);
+						jGroup.TryGetAs("text", out text);
+
+						if (string.IsNullOrEmpty(groupname)) {
+							continue;
 						}
-					} else {
-						Log.WriteError ($"No 'colors' array found in {ConfigFilepath}");
+						ChatColorSpecification spec = new ChatColorSpecification(prefix, prefixcolor, name, text);
+						Colors[groupname] = spec;
 					}
+				} else {
+					Log.WriteError($"No 'chatcolorgroups' array found in {ConfigFilepath}");
 				}
 			} catch (Exception exception) {
-				Log.WriteError ($"Exception while loading chatcolors; {exception.Message}");
+				Log.WriteError($"Exception while loading chatcolors; {exception.Message}");
 			}
 		}
 	}
 
-	class ChatColorSpecification
+	public struct ChatColorSpecification
 	{
-		public string Name { get; set; }
+		public string Prefix;
+		public string PrefixColor;
+		public string Name;
+		public string Text;
 
-		public string Color { get; set; }
-
-		public ChatColorSpecification (string name, string color)
+		public ChatColorSpecification(string p, string pc, string n, string t)
 		{
-			Name = name;
-			Color = color;
+			Prefix = p;
+			PrefixColor = pc;
+			Name = n;
+			Text = t;
 		}
 	}
 }
+
