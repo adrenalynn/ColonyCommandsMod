@@ -37,7 +37,7 @@ namespace ColonyCommands
 				}
 
 				WarManager.EnableWar(causedBy, duration);
-				Chat.SendToConnectedBut(causedBy, "<color=yellow>{causedBy.Name} entered WAR mode</color>");
+				Chat.SendToConnectedBut(causedBy, $"<color=yellow>{causedBy.Name} entered WAR mode</color>");
 				Chat.Send(causedBy, $"<color=yellow>You entered WAR mode. It will expire after {duration / 60 / 60} hours.</color>");
 
 			// admin disable all war
