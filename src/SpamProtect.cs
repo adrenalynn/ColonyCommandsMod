@@ -9,15 +9,16 @@ namespace ColonyCommands
 {
 	public static class MuteList
 	{
-		public static Dictionary<Players.Player, long> MutedMinutes = new Dictionary<Players.Player, long>();
+		public static Dictionary<NetworkID, long> MutedMinutes = new Dictionary<NetworkID, long>();
 
 		public static void Update()
 		{
-			var tmp = new Dictionary<Players.Player, long> (MutedMinutes);
+			var tmp = new Dictionary<NetworkID, long> (MutedMinutes);
 			foreach (var entry in tmp) {
 				if (entry.Value < DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) {
 					MutedMinutes.Remove(entry.Key);
-					Log.Write($"Unmuted {entry.Key.Name}");
+					Players.Player target = Players.PlayerDatabase[entry.Key];
+					Log.Write($"Unmuted {target.Name}");
 				}
 			}
 		}
@@ -51,10 +52,10 @@ namespace ColonyCommands
 				Chat.Send(causedBy, "Could not read minutes value");
 				return true;
 			}
-			if (MuteList.MutedMinutes.ContainsKey(targetPlayer)) {
-				MuteList.MutedMinutes.Remove(targetPlayer);
+			if (MuteList.MutedMinutes.ContainsKey(targetPlayer.ID)) {
+				MuteList.MutedMinutes.Remove(targetPlayer.ID);
 			}
-			MuteList.MutedMinutes.Add(targetPlayer, DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond + minutes * 60 * 1000);
+			MuteList.MutedMinutes.Add(targetPlayer.ID, DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond + minutes * 60 * 1000);
 			Chat.Send(targetPlayer, $"You're muted for {minutes} Minute(s)");
 			Log.Write($"{targetPlayer.Name} muted for {minutes} Minute(s)");
 			Chat.Send(causedBy, $"{targetPlayer.Name} muted for {minutes} Minute(s)");
@@ -84,8 +85,8 @@ namespace ColonyCommands
 				Chat.Send(causedBy, $"Could not find target player '{targetPlayerName}': {error}");
 				return true;
 			}
-			if (MuteList.MutedMinutes.ContainsKey(targetPlayer)) {
-				MuteList.MutedMinutes.Remove(targetPlayer);
+			if (MuteList.MutedMinutes.ContainsKey(targetPlayer.ID)) {
+				MuteList.MutedMinutes.Remove(targetPlayer.ID);
 				Log.Write ($"Unmuted {targetPlayer.Name}");
 			} else {
 				Chat.Send(causedBy, $"{targetPlayer.Name} was not muted");

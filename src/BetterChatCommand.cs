@@ -18,7 +18,7 @@ namespace ColonyCommands
 		public bool TryDoCommand(Players.Player causedBy, string chat, List<string> splits)
 		{
 			MuteList.Update();
-			if (MuteList.MutedMinutes.ContainsKey(causedBy)) {
+			if (MuteList.MutedMinutes.ContainsKey(causedBy.ID)) {
 				Chat.Send(causedBy, "[muted]");
 				return true;
 			}
