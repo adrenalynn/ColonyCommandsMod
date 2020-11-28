@@ -13,7 +13,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand (Players.Player causedBy, string chattext, List<string> splits)
     {
-	  if (!splits[0].Equals ("/trash")) {
+	  if (splits.Count == 0 || !splits[0].Equals ("/trash")) {
 		return false;
 		}
       var m = Regex.Match (chattext, @"/trash (?<material>.+) (?<amount>\d+)");

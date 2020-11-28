@@ -10,7 +10,7 @@ namespace ColonyCommands
 
 		public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
 		{
-			if (!splits[0].Equals("/serverpop")) {
+			if (splits.Count == 0 || !splits[0].Equals("/serverpop")) {
 				return false;
 			}
 			var allPlayers = Players.PlayerDatabase.Count;

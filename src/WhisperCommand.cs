@@ -11,7 +11,7 @@ namespace ColonyCommands
 
 		public bool TryDoCommand (Players.Player causedBy, string chattext, List<string> splits)
 		{
-			if (!splits[0].Equals("/w") && !splits[0].Equals("/whisper")) {
+			if (splits.Count == 0 || (!splits[0].Equals("/w") && !splits[0].Equals("/whisper"))) {
 				return false;
 			}
 			var m = Regex.Match(chattext, @"/((w)|(whisper)) (?<targetplayername>['].+[']|[^ ]+) (?<message>.+)");

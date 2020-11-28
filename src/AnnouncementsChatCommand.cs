@@ -24,7 +24,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand (Players.Player causedBy, string chattext, List<string> splits)
     {
-      if (!splits[0].Equals ("/announcements")) {
+      if (splits.Count == 0 || !splits[0].Equals ("/announcements")) {
 		return false;
 	 }
       if (chattext.Equals ("/announcements") || chattext.Equals ("/announcements list")) {

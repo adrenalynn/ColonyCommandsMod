@@ -14,7 +14,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
     {
-		if (!splits[0].Equals("/jailleave") && !splits[0].Equals("/leavejail")) {
+		if (splits.Count == 0 || (!splits[0].Equals("/jailleave") && !splits[0].Equals("/leavejail"))) {
 			return false;
 		}
       Vector3 oldPos;

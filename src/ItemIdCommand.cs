@@ -10,7 +10,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand (Players.Player causedBy, string chattext, List<string> splits)
     {
-	  if (!splits[0].Equals ("/itemid")) {
+	  if (splits.Count == 0 || !splits[0].Equals ("/itemid")) {
 		return false;
 	}
       string reply = "";

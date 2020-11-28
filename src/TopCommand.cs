@@ -27,7 +27,7 @@ namespace ColonyCommands
 
 		public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
 		{
-			if (!splits[0].Equals("/top")) {
+			if (splits.Count == 0 || !splits[0].Equals("/top")) {
 				return false;
 			}
 			if (splits.Count < 2) {
@@ -126,9 +126,11 @@ namespace ColonyCommands
 				if (colony.Owners.Any(a => players.Contains(a))) {
 					long score = 0;
 					if (scoreType == EScoreType.HappinessScore) {
-						score = (long)(colony.HappinessData.CachedHappiness * colony.FollowerCount);
+						//score = (long)(colony.HappinessData.CachedHappiness * colony.FollowerCount);
+						score = 0;
 					} else if (scoreType == EScoreType.Food) {
-						score = (long)colony.Stockpile.TotalFood;
+						//score = (long)colony.Stockpile.TotalFood;
+						score = 0;
 					} else if (scoreType == EScoreType.Colonists) {
 						score = colony.FollowerCount;
 					} else if (scoreType == EScoreType.Item) {

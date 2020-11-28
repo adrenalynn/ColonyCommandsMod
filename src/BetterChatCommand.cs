@@ -78,13 +78,17 @@ namespace ColonyCommands
 		// Load from config file (JSON)
 		public static void LoadChatColors()
 		{
-			JSONNode jsonConfig;
-			if (!JSON.Deserialize(ConfigFilepath, out jsonConfig, false)) {
-				Log.WriteError($"{ConfigFilepath} not found/not readable json");
+			if (!File.Exists(ConfigFilepath)) {
+				Log.Write($"Chatcolors file not found {ConfigFilepath}");
 				return;
 			}
 
 			try {
+				JSONNode jsonConfig;
+				if (!JSON.Deserialize(ConfigFilepath, out jsonConfig, false)) {
+					Log.WriteError($"Error loading {ConfigFilepath}");
+					return;
+				}
 				JSONNode jsonColors;
 				if (jsonConfig.TryGetAs("chatcolorgroups", out jsonColors) && jsonColors.NodeType == NodeType.Array) {
 					foreach (JSONNode jGroup in jsonColors.LoopArray()) {
@@ -105,7 +109,7 @@ namespace ColonyCommands
 					Log.WriteError($"No 'chatcolorgroups' array found in {ConfigFilepath}");
 				}
 			} catch (Exception exception) {
-				Log.WriteError($"Exception while loading chatcolors; {exception.Message}");
+				Log.WriteError($"Exception while loading chatcolors: {exception.Message}");
 			}
 		}
 	}

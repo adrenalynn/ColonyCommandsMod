@@ -21,7 +21,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand (Players.Player causedBy, string chattext, List<string> splits)
     {
-	  if (!splits[0].Equals ("/help")) {
+	  if (splits.Count == 0 || !splits[0].Equals ("/help")) {
 		return false;
 		}
       var m = Regex.Match(chattext, @"/help (?<section>.+)");

@@ -27,7 +27,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
     {
-		if (!splits[0].Equals("/stuck")) {
+		if (splits.Count == 0 || !splits[0].Equals("/stuck")) {
 			return false;
 		}
 		if (causedBy == null || causedBy.ID == NetworkID.Server) {

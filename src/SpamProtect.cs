@@ -29,7 +29,7 @@ namespace ColonyCommands
 
 		public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
 		{
-			if (!splits[0].Equals("/mute")) {
+			if (splits.Count == 0 || !splits[0].Equals("/mute")) {
 				return false;
 			}
 			if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "mute")) {
@@ -67,7 +67,7 @@ namespace ColonyCommands
 	{
 		public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
 		{
-			if (!splits[0].Equals("/unmute")) {
+			if (splits.Count == 0 || !splits[0].Equals("/unmute")) {
 				return false;
 			}
 			if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "mute")) {

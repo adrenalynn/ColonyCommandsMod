@@ -10,7 +10,7 @@ namespace ColonyCommands
 	{
 		public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
 		{
-			if (!splits[0].Equals("/bannername")) {
+			if (splits.Count == 0 || !splits[0].Equals("/bannername")) {
 				return false;
 			}
 			BannerTracker.Banner closestBanner = null;

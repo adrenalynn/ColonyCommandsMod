@@ -2,14 +2,18 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.7.15",
+	"version" : "0.7.16",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
 	"compatibleversions" : [
-		"0.7.1"
+		"0.7.1", "0.8.0"
 	],
 	"patchnotes": [
+		{ "version": "0.7.16", "notes": [
+				"updated for CS 0.8.0"
+			]
+		},
 		{ "version": "0.7.15", "notes": [
 				"new /war command to allow colony player wars",
 				"custom jail sizes possible, like 10x50x20"

@@ -22,7 +22,7 @@ namespace ColonyCommands
 
 		public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
 		{
-			if (!splits[0].Equals("/beds")) {
+			if (splits.Count == 0 || !splits[0].Equals("/beds")) {
 				return false;
 			}
 			if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "beds")) {

@@ -9,7 +9,7 @@ namespace ColonyCommands
 	{
 		public bool TryDoCommand(Players.Player causedBy, string chattext, List<string> splits)
 		{
-			if (!splits[0].Equals("/customarea")) {
+			if (splits.Count == 0 || !splits[0].Equals("/customarea")) {
 				return false;
 			}
 			Pipliz.Vector3Int playerPos = new Vector3Int(causedBy.Position);

@@ -11,7 +11,7 @@ namespace ColonyCommands
 
     public bool TryDoCommand (Players.Player causedBy, string chattext, List<string> splits)
     {
-	  if (!splits[0].Equals ("/warp")) {
+	  if (splits.Count == 0 || !splits[0].Equals ("/warp")) {
 		return false;
 	}
       if (!PermissionsManager.HasPermission (causedBy, AntiGrief.MOD_PREFIX + "warp.player") &&
