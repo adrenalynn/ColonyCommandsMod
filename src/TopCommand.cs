@@ -18,7 +18,7 @@ namespace ColonyCommands
 		}
 
 		public enum EScoreType {
-			HappinessScore,
+			Score,
 			Food,
 			Colonists,
 			Item,
@@ -65,7 +65,7 @@ namespace ColonyCommands
 			Dictionary<string, long> results;
 			EScoreType scoreType;
 			if (typename.Equals("score")) {
-				scoreType = EScoreType.HappinessScore;
+				scoreType = EScoreType.Score;
 				results = ScoreColonies(players, calcType, scoreType);
 
 			} else if (typename.Equals("food")) {
@@ -125,12 +125,10 @@ namespace ColonyCommands
 			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
 				if (colony.Owners.Any(a => players.Contains(a))) {
 					long score = 0;
-					if (scoreType == EScoreType.HappinessScore) {
-						//score = (long)(colony.HappinessData.CachedHappiness * colony.FollowerCount);
-						score = 0;
+					if (scoreType == EScoreType.Score) {
+						score = colony.ColonyPoints;
 					} else if (scoreType == EScoreType.Food) {
-						//score = (long)colony.Stockpile.TotalFood;
-						score = 0;
+						score = (long)colony.Stockpile.TotalMeals;
 					} else if (scoreType == EScoreType.Colonists) {
 						score = colony.FollowerCount;
 					} else if (scoreType == EScoreType.Item) {
