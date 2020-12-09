@@ -526,7 +526,8 @@ namespace ColonyCommands {
 				int player_colonists = 0;
 				int killed_per_player = 0;
 				foreach (Colony checkColony in target.Colonies) {
-					player_colonists += checkColony.FollowerCount;
+					if(checkColony.Owners[0]  == target)
+						player_colonists += checkColony.FollowerCount;
 				}
 
 				// calculate effective limit to allow tier levels per player
