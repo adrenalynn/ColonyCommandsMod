@@ -56,7 +56,7 @@ namespace ColonyCommands
 					continue;
 				}
 				// remove players that should be hidden from scoring
-				if (PermissionsManager.HasPermission(item.Value, AntiGrief.MOD_PREFIX + "hidefromtopcmd" )) {
+				if (PermissionsManager.HasPermissionExact(item.Value, AntiGrief.MOD_PREFIX + "hidefromtopcmd" )) {
 					continue;
 				}
 				players.Add(item.Value);
