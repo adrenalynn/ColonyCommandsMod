@@ -50,6 +50,7 @@ namespace ColonyCommands {
 		static bool EnableWarpCommand;
 		public static int WarDuration = 2 * 60 * 60; // 2 hours
 		static Dictionary<Players.Player, int> KillCounter = new Dictionary<Players.Player, int>();
+		public static MethodInfo AngryGuardsWarMode = null;
 
 		static string ConfigFilepath {
 			get {
@@ -708,6 +709,34 @@ namespace ColonyCommands {
 			ThreadManager.InvokeOnMainThread(delegate {
 				PerformOnlineBackup();
 			}, OnlineBackupIntervalHours * 60f * 60f);
+		}
+
+		// load hook into AngryGuards mod, if it is available
+		[ModLoader.ModCallback(ModLoader.EModCallbackType.AfterModsLoaded, NAMESPACE + ".AfterModsLoaded")]
+		public static void AfterModsLoaded(List<ModLoader.ModDescription> mods)
+		{
+			Assembly angryguards = null;
+			for (int i = 0; i < mods.Count; i++) {
+				if (mods[i].name == "Angry Guards") {
+					angryguards = mods[i].LoadedAssembly;
+					Log.Write("ColonyCommands: found AngryGuards mod, enabling hook");
+				}
+			}
+
+			if (angryguards == null) {
+				return;
+			}
+
+			foreach (Type t in angryguards.GetTypes()) {
+				if (t.FullName == "AngryGuards.AngryGuards") {
+					MethodInfo m = t.GetMethod("ColonySetWarMode");
+					if (m != null) {
+						Log.Write("Method AngryGuards.ColonySetWarMode found, hook enabled");
+						AngryGuardsWarMode = m;
+					}
+				}
+			}
+
 		}
 
 	} // class

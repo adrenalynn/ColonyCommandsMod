@@ -67,6 +67,13 @@ namespace ColonyCommands {
 			}
 			warEntry entry = new warEntry(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000, duration);
 			warDict[player] = entry;
+
+			// enable AngryGuards active mode for all colonies
+			if (AntiGrief.AngryGuardsWarMode != null) {
+				foreach (Colony colony in player.Colonies) {
+					AntiGrief.AngryGuardsWarMode.Invoke(null, new object[]{colony, true});
+				}
+			}
 		}
 
 		// disable war for a player
@@ -78,11 +85,26 @@ namespace ColonyCommands {
 				Chat.Send(player, "<color=yellow>Your WAR status expired. Do no longer attack others!</color>");
 			}
 			Chat.SendToConnectedBut(player, "<color=yellow>WAR status of {player.Name} expired.</color>");
+
+			// disable AngryGuards active mode for all colonies
+			if (AntiGrief.AngryGuardsWarMode != null) {
+				foreach (Colony colony in player.Colonies) {
+					AntiGrief.AngryGuardsWarMode.Invoke(null, new object[]{colony, true});
+				}
+			}
 		}
 
 		// end all wars
 		public static void EndAllWars()
 		{
+			List<Players.Player> toDisable = new List<Players.Player>();
+			foreach (KeyValuePair<Players.Player, warEntry> kvp in warDict) {
+				Players.Player target = kvp.Key;
+				toDisable.Add(target);
+			}
+			foreach (Players.Player target in toDisable) {
+				DisableWar(target);
+			}
 			warDict.Clear();
 		}
 
