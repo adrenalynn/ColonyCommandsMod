@@ -113,6 +113,7 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new UnmuteChatCommand());
 			CommandManager.RegisterCommand(new ListPlayerChatCommand());
 			CommandManager.RegisterCommand(new WarChatCommand());
+			CommandManager.RegisterCommand(new PromoteChatCommand());
 			return;
 		}
 
