@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.8.2",
+	"version" : "0.8.3",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,10 @@
 		"0.7.1", "0.8.0"
 	],
 	"patchnotes": [
+		{ "version": "0.8.3", "notes": [
+				"Prevent server connections in the first minutes after startup (for heavy load servers)"
+			]
+		},
 		{ "version": "0.8.2", "notes": [
 				"AngryGuards (if installed) will get notified of /war start"
 			]

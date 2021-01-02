@@ -51,6 +51,8 @@ namespace ColonyCommands {
 		public static int WarDuration = 2 * 60 * 60; // 2 hours
 		static Dictionary<Players.Player, int> KillCounter = new Dictionary<Players.Player, int>();
 		public static MethodInfo AngryGuardsWarMode = null;
+		public static int StartupGracePeriod = 0;
+		public static long ServerStartupTime;
 
 		static string ConfigFilepath {
 			get {
@@ -63,6 +65,7 @@ namespace ColonyCommands {
 		{
 			MOD_DIRECTORY = Path.GetDirectoryName(path);
 			Log.Write("Loaded ColonyCommands (Anti-Grief)");
+			ServerStartupTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000;
 		}
 
 		[ModLoader.ModCallback(ModLoader.EModCallbackType.AfterItemTypesDefined, NAMESPACE + ".RegisterTypes")]
@@ -114,6 +117,7 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new ListPlayerChatCommand());
 			CommandManager.RegisterCommand(new WarChatCommand());
 			CommandManager.RegisterCommand(new PromoteChatCommand());
+			CommandManager.RegisterCommand(new GracePeriodChatCommand());
 			return;
 		}
 
@@ -262,13 +266,6 @@ namespace ColonyCommands {
 			}
 		}
 
-		// send welcome message
-		[ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerConnectedLate, NAMESPACE + ".OnPlayerConnected")]
-		public static void OnPlayerConnectedLate(Players.Player player)
-		{
-			Chat.Send(player, "<color=yellow>Anti-Grief protection enabled</color>");
-		}
-
 		// load config
 		public static void Load()
 		{
@@ -372,6 +369,9 @@ namespace ColonyCommands {
 				int warpRange;
 				jsonConfig.TryGetAsOrDefault("DefaultWarpRange", out warpRange, 2);
 				TravelManager.DefaultWarpRange = warpRange;
+
+				jsonConfig.TryGetAsOrDefault("StartupGracePeriod", out StartupGracePeriod, 0);
+
 			} else {
 				Save();
 				Log.Write ($"Could not find {ConfigFilepath} file, created default one");
@@ -449,6 +449,7 @@ namespace ColonyCommands {
 			jsonConfig.SetAs ("CustomAreas", jsonCustomAreas);
 			jsonConfig.SetAs("DefaultWarpRange", TravelManager.DefaultWarpRange);
 			jsonConfig.SetAs("WarDuration", WarDuration);
+			jsonConfig.SetAs("StartupGracePeriod", StartupGracePeriod);
 
 			JSON.Serialize (ConfigFilepath, jsonConfig, 2);
 		}
@@ -738,6 +739,22 @@ namespace ColonyCommands {
 				}
 			}
 
+		}
+
+		[ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerConnectedLate, NAMESPACE + ".OnPlayerConnectedLate")]
+		public static void OnPlayerConnectedLate(Players.Player player)
+	  	{
+			Chat.Send(player, "<color=yellow>Anti-Grief protection enabled</color>");
+
+			long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000;
+			if (ServerStartupTime + StartupGracePeriod < now) {
+				return;
+			}
+			if (PermissionsManager.HasPermission(player, "antigrief.graceperiod")) {
+				return;
+			}
+			Chat.Send(player, $"Server not yet ready. Please try again in {StartupGracePeriod/60} minutes");
+			Players.Disconnect(player);
 		}
 
 	} // class
