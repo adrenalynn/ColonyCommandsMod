@@ -30,7 +30,7 @@ namespace ColonyCommands
 			}
 
 			string uptimeval;
-			long upseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000 - AntiGrief.ServerStartupTime;
+			int upseconds = Pipliz.Time.SecondsSinceStartInt;
 			if (upseconds > 3600) {
 				uptimeval = $"{upseconds/3600}:{upseconds%3600/60:D2} hours.";
 			} else if (upseconds > 60) {

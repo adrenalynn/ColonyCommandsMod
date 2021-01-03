@@ -52,7 +52,6 @@ namespace ColonyCommands {
 		static Dictionary<Players.Player, int> KillCounter = new Dictionary<Players.Player, int>();
 		public static MethodInfo AngryGuardsWarMode = null;
 		public static int StartupGracePeriod = 0;
-		public static long ServerStartupTime;
 
 		static string ConfigFilepath {
 			get {
@@ -65,7 +64,6 @@ namespace ColonyCommands {
 		{
 			MOD_DIRECTORY = Path.GetDirectoryName(path);
 			Log.Write("Loaded ColonyCommands (Anti-Grief)");
-			ServerStartupTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000;
 		}
 
 		[ModLoader.ModCallback(ModLoader.EModCallbackType.AfterItemTypesDefined, NAMESPACE + ".RegisterTypes")]
@@ -747,7 +745,7 @@ namespace ColonyCommands {
 			Chat.Send(player, "<color=yellow>Anti-Grief protection enabled</color>");
 
 			long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000;
-			if (ServerStartupTime + StartupGracePeriod < now) {
+			if (Pipliz.Time.SecondsSinceStartInt + StartupGracePeriod < now) {
 				return;
 			}
 			if (PermissionsManager.HasPermission(player, "antigrief.graceperiod")) {
