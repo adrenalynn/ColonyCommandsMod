@@ -111,13 +111,11 @@ namespace ColonyCommands
 		{
 			error = "";
 			colony = null;
-			if (name.StartsWith("'")) {
-				if (name.EndsWith("'")) {
-					name = name.Substring(1, name.Length - 2);
-				} else {
-					error = "missing ' at end";
-					return false;
-				}
+			if (name.StartsWith("'") || name.StartsWith("\"")) {
+				name = name.Substring(1, name.Length - 1);
+			}
+			if (name.EndsWith("'") || name.EndsWith("\"")) {
+				name = name.Substring(0, name.Length - 1);
 			}
 
 			// try by exact name first
@@ -143,7 +141,7 @@ namespace ColonyCommands
 					closestMatch = null;
 				}
 			}
-			if (closestMatch != null && closestDist < closestMatch.Name.Length * 0.2) {
+			if (closestMatch != null && closestDist <= closestMatch.Name.Length * 0.3) {
 				colony = closestMatch;
 				return true;
 			}
