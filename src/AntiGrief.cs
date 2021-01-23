@@ -116,6 +116,7 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new WarChatCommand());
 			CommandManager.RegisterCommand(new PromoteChatCommand());
 			CommandManager.RegisterCommand(new GracePeriodChatCommand());
+			CommandManager.RegisterCommand(new RoleplayChatCommand());
 			return;
 		}
 

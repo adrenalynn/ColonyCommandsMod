@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.8.4",
+	"version" : "0.8.5",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,10 @@
 		"0.7.1", "0.8.0"
 	],
 	"patchnotes": [
+		{ "version": "0.8.5", "notes": [
+				"added /rp on|off command to allow a chat marker [RP] for roleplay"
+			]
+		},
 		{ "version": "0.8.4", "notes": [
 				"improved colony name matching for /warpbanner"
 			]

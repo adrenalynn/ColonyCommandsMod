@@ -41,6 +41,7 @@ namespace ColonyCommands
 			}
 			ChatColorSpecification spec = ChatColors.Colors[groupname];
 			
+			// rank prefix
 			string fulltext = "";
 			if (!string.IsNullOrEmpty(spec.Prefix)) {
 				if (!string.IsNullOrEmpty(spec.PrefixColor)) {
@@ -49,11 +50,21 @@ namespace ColonyCommands
 					fulltext = $"[{spec.Prefix}]";
 				}
 			}
+
+			// name
 			if (!string.IsNullOrEmpty(spec.Name)) {
-					fulltext += $"<color={spec.Name}>{causedBy.Name}</color>> ";
+					fulltext += $"<color={spec.Name}>{causedBy.Name}</color>";
 			} else {
-				fulltext += causedBy.Name + "> ";
+				fulltext += causedBy.Name;
 			}
+
+			// roleplay marker
+			if (RoleplayManager.IsRoleplaying(causedBy)) {
+				fulltext += $"<color={spec.RpMarker}>[RP]</color>";
+			}
+
+			// text
+			fulltext += "> ";
 			if (!string.IsNullOrEmpty(spec.Text)) {
 					fulltext += $"<color={spec.Text}>{chat}</color>";
 			} else {
@@ -92,17 +103,18 @@ namespace ColonyCommands
 				JSONNode jsonColors;
 				if (jsonConfig.TryGetAs("chatcolorgroups", out jsonColors) && jsonColors.NodeType == NodeType.Array) {
 					foreach (JSONNode jGroup in jsonColors.LoopArray()) {
-						string groupname, prefix, prefixcolor, name, text;
+						string groupname, prefix, prefixcolor, name, text, rpmarker;
 						jGroup.TryGetAs("groupname", out groupname);
 						jGroup.TryGetAs("prefix", out prefix);
 						jGroup.TryGetAs("prefixcolor", out prefixcolor);
 						jGroup.TryGetAs("name", out name);
 						jGroup.TryGetAs("text", out text);
+						jGroup.TryGetAsOrDefault("rpmarker", out rpmarker, "yellow");
 
 						if (string.IsNullOrEmpty(groupname)) {
 							continue;
 						}
-						ChatColorSpecification spec = new ChatColorSpecification(prefix, prefixcolor, name, text);
+						ChatColorSpecification spec = new ChatColorSpecification(prefix, prefixcolor, name, text, rpmarker);
 						Colors[groupname] = spec;
 					}
 				} else {
@@ -120,13 +132,15 @@ namespace ColonyCommands
 		public string PrefixColor;
 		public string Name;
 		public string Text;
+		public string RpMarker;
 
-		public ChatColorSpecification(string p, string pc, string n, string t)
+		public ChatColorSpecification(string p, string pc, string n, string t, string r)
 		{
 			Prefix = p;
 			PrefixColor = pc;
 			Name = n;
 			Text = t;
+			RpMarker = r;
 		}
 	}
 }
