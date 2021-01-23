@@ -11,7 +11,8 @@
 	],
 	"patchnotes": [
 		{ "version": "0.8.5", "notes": [
-				"added /rp on|off command to allow a chat marker [RP] for roleplay"
+				"added /rp on|off command to allow a chat marker [RP] for roleplay",
+				"after server startup colonies without owner will be automatically purged"
 			]
 		},
 		{ "version": "0.8.4", "notes": [

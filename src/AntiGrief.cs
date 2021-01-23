@@ -263,6 +263,9 @@ namespace ColonyCommands {
 					PerformColonistPerColonyLimitCheck();
 				}, ColonyColonistLimitTierCheckSeconds);
 			}
+
+			// check and remove empty banners
+			ThreadManager.InvokeOnMainThread(delegate { StartupEmptyColonyCheck(); }, 160.0);
 		}
 
 		// load config
@@ -754,6 +757,23 @@ namespace ColonyCommands {
 			}
 			Chat.Send(player, $"Server not yet ready. Please try again in {StartupGracePeriod/60} minutes");
 			Players.Disconnect(player);
+		}
+
+		// check for empty colony leftovers and remove them
+		public static void StartupEmptyColonyCheck()
+		{
+			int ic = 0;
+			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
+				ic++;
+				if (colony.Owners.Length == 0 && colony.Banners.Length > 0) {
+					Log.Write($"Empty colony check: #{colony.ColonyID} {colony.Name} has no owners - purging it");
+					while (colony.Banners.Length > 1) {
+						ServerManager.ClientCommands.DeleteBannerTo(null, colony, colony.Banners[0].Position);
+					}
+					ServerManager.ClientCommands.DeleteColonyAndBanner(null, colony, colony.Banners[0].Position);
+				}
+			}
+			Log.Write($"Empty colony check: finished checking {ic} colonies.");
 		}
 
 	} // class

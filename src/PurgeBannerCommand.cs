@@ -90,13 +90,10 @@ namespace ColonyCommands
 				return true;
 			}
 
-			if (colony.Banners.Length > 1) {
-				ServerManager.ClientCommands.DeleteBannerTo(causedBy, colony, banner.Position);
-				Chat.Send(causedBy, $"Deleted banner at {banner.Position.x},{banner.Position.z}. Colony still has more banners");
-			} else {
-				ServerManager.ClientCommands.DeleteColonyAndBanner(causedBy, colony, banner.Position);
-				Chat.Send(causedBy, $"Deleted banner at {banner.Position.x},{banner.Position.z} and also the colony.");
+			if (colony != null) {
+				Chat.Send(causedBy, $"Colony {colony.Name} found. Use '/purgebanner colony' to purge it");
 			}
+
 			return true;
 		}
 
