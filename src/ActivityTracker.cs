@@ -71,7 +71,10 @@ namespace ColonyCommands
           } else {
             PlayerStats.Clear ();
             foreach (var jsonPlayerStats in jsonStats.LoopObject ()) {
-              var playerId = jsonPlayerStats.Key;
+              string playerId = jsonPlayerStats.Key;
+              if (!playerId.StartsWith("Steam:")) {
+				continue;
+              }
               var stats = (StatsDataEntry)jsonPlayerStats.Value;
               if (stats != null) {
                 PlayerStats.Add (playerId, stats);
@@ -127,6 +130,9 @@ namespace ColonyCommands
 	{
 		var result = new Dictionary<Players.Player, int>();
 		foreach (Players.Player player in Players.PlayerDatabase.Values) {
+              if (player.ID == NetworkID.LocalHost || player.ID == NetworkID.Server || player.ID == NetworkID.Invalid) {
+				continue;
+              }
 			StatsDataEntry stats = GetOrCreateStats(player.ID.ToStringReadable());
 			DateTime lastSeen = DateTime.Now;
 			try {
