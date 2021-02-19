@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.8.5",
+	"version" : "0.8.6",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,10 @@
 		"0.7.1", "0.8.0"
 	],
 	"patchnotes": [
+		{ "version": "0.8.6", "notes": [
+				"/top commands counts colonies only for the leader, not all owners"
+			]
+		},
 		{ "version": "0.8.5", "notes": [
 				"added /rp on|off command to allow a chat marker [RP] for roleplay",
 				"after server startup colonies without owner will be automatically purged"

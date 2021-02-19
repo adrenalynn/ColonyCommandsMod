@@ -123,19 +123,20 @@ namespace ColonyCommands
 		{
 			Dictionary<Colony, long> colonyresults = new Dictionary<Colony, long>();
 			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
-				if (colony.Owners.Any(a => players.Contains(a))) {
-					long score = 0;
-					if (scoreType == EScoreType.Score) {
-						score = colony.ColonyPoints;
-					} else if (scoreType == EScoreType.Food) {
-						score = (long)colony.Stockpile.TotalMeals;
-					} else if (scoreType == EScoreType.Colonists) {
-						score = colony.FollowerCount;
-					} else if (scoreType == EScoreType.Item) {
-						score = colony.Stockpile.AmountContained(item);
-					}
-					colonyresults[colony] = score;
+				if (colony.Owners.Length == 0) {
+					continue;
 				}
+				long score = 0;
+				if (scoreType == EScoreType.Score) {
+					score = colony.ColonyPoints;
+				} else if (scoreType == EScoreType.Food) {
+					score = (long)colony.Stockpile.TotalMeals;
+				} else if (scoreType == EScoreType.Colonists) {
+					score = colony.FollowerCount;
+				} else if (scoreType == EScoreType.Item) {
+					score = colony.Stockpile.AmountContained(item);
+				}
+				colonyresults[colony] = score;
 			}
 
 			Dictionary<string, long> results = new Dictionary<string, long>();
@@ -145,12 +146,11 @@ namespace ColonyCommands
 				}
 			} else {
 				foreach (Colony col in colonyresults.Keys) {
-					foreach (Players.Player owner in col.Owners) {
-						if (!results.ContainsKey(owner.Name)) {
-							results[owner.Name] = colonyresults[col];
-						} else {
-							results[owner.Name] += colonyresults[col];
-						}
+					Players.Player owner = col.Owners[0];
+					if (!results.ContainsKey(owner.Name)) {
+						results[owner.Name] = colonyresults[col];
+					} else {
+						results[owner.Name] += colonyresults[col];
 					}
 				}
 			}
