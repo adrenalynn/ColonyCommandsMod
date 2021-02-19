@@ -17,17 +17,19 @@ namespace ColonyCommands
 			if (splits.Count == 0 || !splits[0].Equals("/colonycap")) {
 				return false;
 			}
-			if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "colonycap")) {
-				return true;
-			}
 
+			// allow view option for all
 			if (splits.Count < 2) {
-				Chat.Send(causedBy, "Syntax: /colonycap {colonistslimit} [checkintervalseconds]");
 				if (AntiGrief.ColonistLimit > 0) {
 					Chat.Send(causedBy, $"Current colonist limit is {AntiGrief.ColonistLimit}");
 				} else {
 					Chat.Send(causedBy, $"Number of colonists is currently unlimited");
 				}
+				return true;
+			}
+
+			// change values require permission
+			if (!PermissionsManager.CheckAndWarnPermission(causedBy, AntiGrief.MOD_PREFIX + "colonycap")) {
 				return true;
 			}
 
