@@ -11,7 +11,8 @@
 	],
 	"patchnotes": [
 		{ "version": "0.8.6", "notes": [
-				"/top commands counts colonies only for the leader, not all owners"
+				"/top commands counts colonists only for the colony leader, not all owners",
+				"banning a player will automatically purge all his colonies"
 			]
 		},
 		{ "version": "0.8.5", "notes": [

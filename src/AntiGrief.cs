@@ -480,17 +480,32 @@ namespace ColonyCommands {
 				kills = 0;
 			}
 			KillCounter[killer] = ++kills;
+
+			// ban
 			if (NpcKillsBanThreshold > 0 && kills >= NpcKillsBanThreshold) {
 				Chat.SendToConnected($"{killer.Name} banned for killing too many colonists");
 				BlackAndWhitelisting.AddBlackList(killer.ID.steamID.m_SteamID);
 				Players.Disconnect(killer);
+				foreach (Colony colony in killer.Colonies) {
+					Log.Write($"Purging colony {colony.Name} from banned player {killer.Name}");
+					if (colony.Owners.Length == 1) {
+						ServerManager.ClientCommands.DeleteColonyAndBanner(null, colony, colony.Banners[0].Position);
+					} else {
+						colony.RemoveOwner(killer);
+					}
+				}
+
+			// kick
 			} else if (NpcKillsKickThreshold > 0 && kills >= NpcKillsKickThreshold) {
 				Chat.SendToConnected($"{killer.Name} kicked for killing too many colonists");
 				Players.Disconnect(killer);
+
+			// jail
 			} else if (NpcKillsJailThreshold > 0 && kills >= NpcKillsJailThreshold) {
 				Chat.SendToConnected($"{killer.Name} put in Jail for killing too many colonists");
 				JailManager.jailPlayer(killer, null, "Killing Colonists", JailManager.DEFAULT_JAIL_TIME);
 			}
+
 			Log.Write($"{killer.Name} killed a colonist of {npc.Colony.Name} at {npc.Position}");
 			int remainingJail = NpcKillsJailThreshold - kills;
 			int remainingKick = NpcKillsKickThreshold - kills;
