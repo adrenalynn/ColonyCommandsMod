@@ -12,7 +12,9 @@
 	"patchnotes": [
 		{ "version": "0.8.6", "notes": [
 				"/top commands counts colonists only for the colony leader, not all owners",
-				"banning a player will automatically purge all his colonies"
+				"banning a player will automatically purge all his colonies",
+				"/inactive now shows the number of affected colonies and colonists",
+				"/purgebanner days only purges colonies with all owners inactive"
 			]
 		},
 		{ "version": "0.8.5", "notes": [

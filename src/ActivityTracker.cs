@@ -128,7 +128,7 @@ namespace ColonyCommands
 
 	public static Dictionary<Players.Player, int> GetInactivePlayers(int days)
 	{
-		var result = new Dictionary<Players.Player, int>();
+		Dictionary<Players.Player, int> result = new Dictionary<Players.Player, int>();
 		foreach (Players.Player player in Players.PlayerDatabase.Values) {
               if (player.ID == NetworkID.LocalHost || player.ID == NetworkID.Server || player.ID == NetworkID.Invalid) {
 				continue;
@@ -138,7 +138,7 @@ namespace ColonyCommands
 			try {
 				lastSeen = DateTime.Parse(stats.lastSeen);
 			} catch (Exception exception) {
-				Log.WriteError ($"Unable to parse lastSeen '{stats.lastSeen}': {exception.Message}");
+				Log.WriteError($"Unable to parse lastSeen '{stats.lastSeen}': {exception.Message}");
 			}
 			double inactiveDays = DateTime.Now.Subtract(lastSeen).TotalDays;
 			if (inactiveDays >= days) {

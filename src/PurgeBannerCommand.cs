@@ -40,12 +40,25 @@ namespace ColonyCommands
 						return true;
 					}
 
-					int counter = 0;
-					foreach (KeyValuePair<Players.Player, int> entry in ActivityTracker.GetInactivePlayers(minage)) {
-						Players.Player player = entry.Key;
-						counter += PurgePlayerColonies(causedBy, player);
+					Dictionary<Players.Player, int> inactivePlayers = ActivityTracker.GetInactivePlayers(minage);
+					int colonistCount = 0, counter = 0;
+					foreach (Colony col in ServerManager.ColonyTracker.ColoniesByID.Values) {
+						if (col.Owners.Length == 0) {
+							continue;
+						}
+						bool activeOwnerFound = false;
+						foreach (Players.Player owner in col.Owners) {
+							if (!inactivePlayers.ContainsKey(owner)) {
+								activeOwnerFound = true;
+							}
+						}
+						if (!activeOwnerFound) {
+							colonistCount += col.Followers.Count;
+							counter++;
+							PurgeColony(causedBy, col);
+						}
 					}
-					Chat.Send(causedBy, $"Purged {counter} colonies from inactive players");
+					Chat.Send(causedBy, $"Purged {counter} colonies with {colonistCount} colonists");
 					return true;
 				} else {
 					Chat.Send(causedBy, "Syntax: /purgebanner {all|days} <range|age>");
@@ -100,11 +113,11 @@ namespace ColonyCommands
 		// purge a full colony at once
 		public void PurgeColony(Players.Player causedBy, Colony colony)
 		{
+			Log.Write($"Purged colony {colony.Name} id={colony.ColonyID}");
 			while (colony.Banners.Length > 1) {
 				ServerManager.ClientCommands.DeleteBannerTo(causedBy, colony, colony.Banners[0].Position);
 			}
 			ServerManager.ClientCommands.DeleteColonyAndBanner(causedBy, colony, colony.Banners[0].Position);
-			Chat.Send(causedBy, "Deleted the full colony");
 			return;
 		}
 

@@ -28,23 +28,30 @@ namespace ColonyCommands
 				return true;
 			}
 
-			string resultMsg = "";
-			int counter = 0;
-			foreach (KeyValuePair<Players.Player, int> entry in ActivityTracker.GetInactivePlayers(days)) {
-				Players.Player player = entry.Key;
-				int inactiveDays = entry.Value;
-				if (resultMsg.Length > 0) {
-					resultMsg += ", ";
+			Dictionary<Players.Player, int> inactivePlayers = ActivityTracker.GetInactivePlayers(days);
+			List<Colony> inactiveColonies = new List<Colony>();
+			int colonistCount = 0;
+			foreach (Colony colony in ServerManager.ColonyTracker.ColoniesByID.Values) {
+				bool activeOwnerFound = false;
+				if (colony.Owners.Length == 0) {
+					continue;
 				}
-				resultMsg += $"{player.ID.ToStringReadable()}({inactiveDays})";
-				counter++;
+				foreach (Players.Player owner in colony.Owners) {
+					if (!inactivePlayers.ContainsKey(owner)) {
+						activeOwnerFound = true;
+					}
+				}
+				if (!activeOwnerFound) {
+					inactiveColonies.Add(colony);
+					colonistCount += colony.Followers.Count;
+				}
 			}
-			if (counter == 0) {
-				resultMsg = "No inactive players found";
-			} else {
-				resultMsg += $". In total {counter} players";
-			}
-			Chat.Send(causedBy, resultMsg);
+
+			string msg = $"No players inactive longer than {days} days";
+			if (inactivePlayers.Count > 0)  {
+				msg = String.Format("{0} players inactive since {1} days. Would purge {2} colonies with {3} colonists", inactivePlayers.Count, days, inactiveColonies.Count, colonistCount);
+			};
+			Chat.Send(causedBy, msg);
 			return true;
 		}
 	}
