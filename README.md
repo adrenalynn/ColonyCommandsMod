@@ -121,7 +121,7 @@ A lot of the commands require the name of a player as target. Names of players c
 
 **/command &lt;steamid&gt;** if all of the above fails one can use the full steamid also
 
-## Further Commands
+## All Commands
 
 <dl>
 <dt>/help</dt>
@@ -147,8 +147,8 @@ The other variant of this command is <b>/help admin</b> which list all admin com
 <dd>Requires permission: <b>mods.scarabol.commands.warp.self</b><br>Warps to the given playernames position.</dd>
 <dt>/warp [targetplayername] [teleportplayername]</dt>
 <dd>Requires permission: <b>mods.scarabol.commands.warp.player</b><br>Warps the second given player to the first given playernames position.</dd>
-<dt>/warpbanner [targetplayername] [teleportplayername]</dt>
-<dd>Requires permission: <b>mods.scarabol.commands.warp.banner</b><br>Warps to the first given playernames banner position. If two names are provided, the second player is warped to the firsts banner position.</dd>
+<dt>/warpbanner [bannername]</dt>
+<dd>Player warps to his/her closest colony or to the one given by name. Permission <b>mods.scarabol.commands.warp.banner.self</b> for player to warp to their own colonies, <b>mods.scarabol.commands.warp.banner</b> to warp to any colony</dd>
 <dt>/warpspawn</dt>
 <dd>Requires permission: <b>mods.scarabol.commands.warp.spawn.self</b><br>Warps the calling player to the spawn point.</dd>
 <dt>/warpspawn [teleportplayername]</dt>
@@ -190,7 +190,7 @@ For admin staff only. Remove the banner closest to you, if it is the last banner
 <dt>/purgebanner all [range]</dt>
 <dt>/purgebanner days [inactive]</dt>
 <dd>Requires permission: <b>mods.scarabol.purgeallbanner</b><br>
-Purge <b>all</b> banners within the given range. With the second form all banners for inactive players. This command can be dangerous</dd>
+Purge <b>all</b> banners within the given range. With the second form all banners for inactive players. This command can be dangerous!</dd>
 </dl>
 
 ## Installation
