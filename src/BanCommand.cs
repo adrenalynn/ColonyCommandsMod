@@ -36,7 +36,7 @@ namespace ColonyCommands
 			Players.Disconnect(targetPlayer);
 
 			foreach (Colony colony in targetPlayer.Colonies) {
-				Log.Write($"Purging colony {colony.Name} from banned player {targetPlayer.Name}");
+				Pipliz.Log.Write($"Purging colony {colony.Name} from banned player {targetPlayer.Name}");
 				if (colony.Owners.Length == 1) {
 					ServerManager.ClientCommands.DeleteColonyAndBanner(null, colony, colony.Banners[0].Position);
 				} else {
