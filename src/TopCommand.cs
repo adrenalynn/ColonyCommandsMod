@@ -113,7 +113,7 @@ namespace ColonyCommands
 				if (scoreType == EScoreType.TimePlayed) {
 					display_val = $"{System.Math.Truncate(val / 3600f)}:{System.Math.Truncate(val % 3600f / 60f):00}:{val % 60f:00}";
 				}
-				Chat.Send(causedBy, $"{i + 1}: {display_val,10} {sortedResult[i].Key}");
+				Chat.Send(causedBy, $"{i + 1,2}: {display_val,10} {sortedResult[i].Key}");
 			}
 
 			return true;
