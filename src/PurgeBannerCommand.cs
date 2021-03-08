@@ -66,47 +66,55 @@ namespace ColonyCommands
 				}
 			}
 
-			Colony colony = null;
-			BannerTracker.Banner banner = null;
-			int shortestDistance = int.MaxValue;
-			foreach (Colony checkColony in ServerManager.ColonyTracker.ColoniesByID.Values) {
-				foreach (BannerTracker.Banner checkBanner in checkColony.Banners) {
-					int distX = (int)(causedBy.Position.x - checkBanner.Position.x);
-					int distZ = (int)(causedBy.Position.z - checkBanner.Position.z);
-					int distance = (int)System.Math.Sqrt(System.Math.Pow(distX, 2) + System.Math.Pow(distZ, 2));
-					if (distance < shortestDistance) {
-						shortestDistance = distance;
-						banner = checkBanner;
-						colony = checkColony;
+			// command: /purgebanner colony
+			if (splits.Count == 2 && splits[1].Equals("colony")) {
+				Colony colony = null;
+				BannerTracker.Banner banner = null;
+				int shortestDistance = int.MaxValue;
+				foreach (Colony checkColony in ServerManager.ColonyTracker.ColoniesByID.Values) {
+					foreach (BannerTracker.Banner checkBanner in checkColony.Banners) {
+						int distX = (int)(causedBy.Position.x - checkBanner.Position.x);
+						int distZ = (int)(causedBy.Position.z - checkBanner.Position.z);
+						int distance = (int)System.Math.Sqrt(System.Math.Pow(distX, 2) + System.Math.Pow(distZ, 2));
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							banner = checkBanner;
+							colony = checkColony;
+						}
 					}
 				}
-			}
 
-			if (banner == null) {
-				Chat.Send(causedBy, "No banners found at all");
-				return true;
-			}
-			if (shortestDistance > 100) {
-				Chat.Send(causedBy, "Closest banner is more than 100 blocks away. Not doing anything");
-				return true;
-			}
-
-			// command: /purgebanner { colony | <playername> }
-			if (splits.Count == 2) {
-				if (splits[1].Equals("colony") && colony != null) {
+				if (banner == null) {
+					Chat.Send(causedBy, "No banners found at all");
+					return true;
+				}
+				if (shortestDistance > 100) {
+					Chat.Send(causedBy, "Closest banner is more than 100 blocks away. Not doing anything");
+					return true;
+				}
+				if (colony != null) {
 					PurgeColony(causedBy, colony);
-				} else {
-					if (PurgePlayerFromColonies(causedBy, splits[1])) {
-						Chat.Send(causedBy, $"Freed {splits[1]} from any colonies");
-					}
+					Chat.Send(causedBy, $"Purged colony {colony.Name}");
+					return true;
 				}
+			}
+
+			// command: /purgebanner {playername}
+			if (splits.Count == 2) {
+				string targetName = splits[1];
+				Players.Player target;
+				string error;
+				if (!PlayerHelper.TryGetPlayer(targetName, out target, out error, true)) {
+					Chat.Send(causedBy, $"Could not find {targetName}: {error}");
+					return true;
+				}
+				PurgePlayerColonies(causedBy, target);
+				Chat.Send(causedBy, $"Freed {targetName} from all colonies");
 				return true;
 			}
 
-			if (colony != null) {
-				Chat.Send(causedBy, $"Colony {colony.Name} found. Use '/purgebanner colony' to purge it");
-			}
-
+			// only reached if nothing else matches
+			Chat.Send(causedBy, "Syntax: /purgebanner { colony | [playername] | all [range] | days [age] }");
 			return true;
 		}
 
@@ -122,18 +130,6 @@ namespace ColonyCommands
 		}
 
 		// purge all colonies of a given player (or remove him/her in case of multiple owners)
-		public bool PurgePlayerFromColonies(Players.Player causedBy, string targetName)
-		{
-			Players.Player target;
-			string error;
-			if (!PlayerHelper.TryGetPlayer(targetName, out target, out error)) {
-				Chat.Send(causedBy, $"Could not find {targetName}: {error}");
-				return false;
-			}
-			PurgePlayerColonies(causedBy, target);
-			return true;
-		}
-
 		public int PurgePlayerColonies(Players.Player causedBy, Players.Player target)
 		{
 			int i = 0;
