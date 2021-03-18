@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.8.6",
+	"version" : "0.8.7",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,10 @@
 		"0.7.1", "0.8.0"
 	],
 	"patchnotes": [
+		{ "version": "0.8.7", "notes": [
+				"fixed protection range missing the outermost block"
+			]
+		},
 		{ "version": "0.8.6", "notes": [
 				"/top commands counts colonists only for the colony leader, not all owners",
 				"banning a player will automatically purge all his colonies",

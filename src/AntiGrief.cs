@@ -177,7 +177,7 @@ namespace ColonyCommands {
 					int distanceX = (int)System.Math.Abs(playerPos.x - checkBanner.Position.x);
 					int distanceZ = (int)System.Math.Abs(playerPos.z - checkBanner.Position.z);
 
-					if (distanceX < checkRangeX && distanceZ < checkRangeZ) {
+					if (distanceX <= checkRangeX && distanceZ <= checkRangeZ) {
 						foreach (Players.Player owner in checkColony.Owners) {
 							if (owner == causedBy) {
 								return;
