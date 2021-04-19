@@ -247,7 +247,7 @@ namespace ColonyCommands {
 			JailManager.Load();
 			TravelManager.Load();
 			CheckColonistLimit();
-			WarManager.CheckWarStatus();
+			WarManager.Load();
 			ChatColors.LoadChatColors();
 
 			if (OnlineBackupIntervalHours > 0) {

@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.8.7",
+	"version" : "0.8.8",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,10 @@
 		"0.7.1", "0.8.0"
 	],
 	"patchnotes": [
+		{ "version": "0.8.8", "notes": [
+				"for /war participants permissions are reduced to peasant"
+			]
+		},
 		{ "version": "0.8.7", "notes": [
 				"fixed protection range missing the outermost block"
 			]
