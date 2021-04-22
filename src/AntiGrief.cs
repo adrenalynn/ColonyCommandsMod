@@ -164,6 +164,17 @@ namespace ColonyCommands {
 				}
 			}
 
+			// check custom protection areas
+			foreach (CustomProtectionArea area in CustomAreas) {
+				if (area.Contains(playerPos) && !PermissionsManager.HasPermission(causedBy, PERMISSION_SPAWN_CHANGE)) {
+					if (causedBy.ConnectionState == Players.EConnectionState.Connected) {
+						Chat.Send(causedBy, "<color=red>You don't have permission to change this protected area!</color>");
+					}
+					BlockCallback(userData);
+					return;
+				}
+			}
+
 			// Check all banners and then decide by Colony.Owners if allowed or not
 			int checkRangeX = BannerProtectionRangeX;
 			int checkRangeZ = BannerProtectionRangeZ;
@@ -215,17 +226,6 @@ namespace ColonyCommands {
 						BlockCallback(userData);
 						return;
 					}
-				}
-			}
-
-			// check custom protection areas
-			foreach (CustomProtectionArea area in CustomAreas) {
-				if (area.Contains(playerPos) && !PermissionsManager.HasPermission(causedBy, PERMISSION_SPAWN_CHANGE)) {
-					if (causedBy.ConnectionState == Players.EConnectionState.Connected) {
-						Chat.Send(causedBy, "<color=red>You don't have permission to change this protected area!</color>");
-					}
-					BlockCallback(userData);
-					return;
 				}
 			}
 

@@ -11,6 +11,7 @@
 	],
 	"patchnotes": [
 		{ "version": "0.8.8", "notes": [
+				"antigrief checks custom protection areas first to secure them from nearby banners",
 				"for /war participants permissions are reduced to peasant"
 			]
 		},
