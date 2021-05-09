@@ -117,6 +117,8 @@ namespace ColonyCommands {
 			CommandManager.RegisterCommand(new PromoteChatCommand());
 			CommandManager.RegisterCommand(new GracePeriodChatCommand());
 			CommandManager.RegisterCommand(new RoleplayChatCommand());
+			CommandManager.RegisterCommand(new RoleplayBanChatCommand());
+			CommandManager.RegisterCommand(new RoleplayUnbanChatCommand());
 			return;
 		}
 
@@ -249,6 +251,7 @@ namespace ColonyCommands {
 			CheckColonistLimit();
 			WarManager.Load();
 			ChatColors.LoadChatColors();
+			RoleplayManager.Load();
 
 			if (OnlineBackupIntervalHours > 0) {
 				Log.Write($"Found online backup interval setting {OnlineBackupIntervalHours}h");

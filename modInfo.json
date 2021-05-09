@@ -2,7 +2,7 @@
 {
 	"name" : "Colony Commands",
 	"description" : "anti-grief protection and admin commands",
-	"version" : "0.8.8",
+	"version" : "0.8.9",
 	"dllpath" : "ColonyCommands.dll",
 	"isoptional" : true,
 	"enableddefault" : true,
@@ -10,6 +10,10 @@
 		"0.7.1", "0.8.0"
 	],
 	"patchnotes": [
+		{ "version": "0.8.9", "notes": [
+				"/rpban and /rpunban commands to allow banning people from using the /rp command"
+			]
+		},
 		{ "version": "0.8.8", "notes": [
 				"antigrief checks custom protection areas first to secure them from nearby banners",
 				"for /war participants permissions are reduced to peasant"

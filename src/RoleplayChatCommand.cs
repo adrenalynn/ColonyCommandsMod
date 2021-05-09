@@ -21,7 +21,10 @@ namespace ColonyCommands
 				if (RoleplayManager.AddPlayer(causedBy)) {
 					Chat.Send(causedBy, "Enabled roleplay marking");
 				} else {
-					Chat.Send(causedBy, "Roleplay marking is already active");
+					RoleplayRecord record = RoleplayManager.GetPlayerRecord(causedBy);
+					long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000;
+					string timeval = RoleplayManager.prettyPrintDuration(record.timestamp + record.duration - now);
+					Chat.Send(causedBy, $"Banned for {timeval} from roleplaying! reason: {record.reason}");
 				}
 
 			// OFF
