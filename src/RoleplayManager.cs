@@ -11,8 +11,8 @@ namespace ColonyCommands {
 	{
 
 		const string CONFIG_FILE = "roleplay-banned.json";
-		public static Dictionary<Players.Player, bool> Roleplayers = new Dictionary<Players.Player, bool>();
-		public static Dictionary<Players.Player, RoleplayRecord> BannedPlayers = new Dictionary<Players.Player, RoleplayRecord>();
+		private static Dictionary<Players.Player, bool> Roleplayers = new Dictionary<Players.Player, bool>();
+		private static Dictionary<Players.Player, RoleplayRecord> BannedPlayers = new Dictionary<Players.Player, RoleplayRecord>();
 		private static string ConfigFile { get {
 			return Path.Combine(Path.Combine("gamedata", "savegames"), Path.Combine(ServerManager.WorldName, CONFIG_FILE)); }
 		}
@@ -32,8 +32,8 @@ namespace ColonyCommands {
 		}
 
 
-		// GetPlayers for output
-		public static List<string> GetPlayers {
+		// GetRoleplayers (for chat output)
+		public static List<string> GetRoleplayers {
 			get {
 				List<string> result = new List<string>();
 				foreach (Players.Player p in Roleplayers.Keys) {
@@ -43,6 +43,18 @@ namespace ColonyCommands {
 			}
 		}
 
+
+		// GetRoleplayBanned (for chat output)
+		public static List<Players.Player> GetRoleplayBanned
+		{
+			get {
+				List<Players.Player> result = new List<Players.Player>();
+				foreach (Players.Player p in BannedPlayers.Keys) {
+					result.Add(p);
+				}
+				return result;
+			}
+		}
 
 		// get banned record
 		public static RoleplayRecord GetPlayerRecord(Players.Player p)
@@ -85,6 +97,9 @@ namespace ColonyCommands {
 			RoleplayRecord record = new RoleplayRecord(now, duration, target, reason);
 			RemovePlayer(target);
 			BannedPlayers.Add(target, record);
+			if (WarManager.IsWarEnabled(target)) {
+				WarManager.DisableWar(target);
+			}
 			Log.Write($"{causedBy.Name} banned {target.Name}/{target.ID.steamID} from roleplaying: {reason}");
 			Save();
 		}
@@ -106,7 +121,9 @@ namespace ColonyCommands {
 		public static void Save()
 		{
 			// if no records but file exists: delete it
-			if (BannedPlayers.Count == 0) {
+			if (BannedPlayers.Count == 0 && File.Exists(ConfigFile)) {
+				File.Delete(ConfigFile);
+				return;
 			}
 
 			Log.Write("Saving roleplay config to {0}", CONFIG_FILE);

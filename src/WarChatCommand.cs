@@ -36,6 +36,12 @@ namespace ColonyCommands
 					return true;
 				}
 
+				// require roleplay marked
+				if (!RoleplayManager.IsRoleplaying(causedBy)) {
+					Chat.Send(causedBy, "<color=red>War is only allowed as roleplay. Use /rp on first</color>");
+					return true;
+				}
+
 				WarManager.EnableWar(causedBy, duration);
 				Chat.SendToConnectedBut(causedBy, $"<color=yellow>{causedBy.Name} entered WAR mode</color>");
 				Chat.Send(causedBy, $"<color=yellow>You entered WAR mode. It will expire after {duration / 60 / 60} hours.</color>");

@@ -35,9 +35,26 @@ namespace ColonyCommands
 					Chat.Send(causedBy, "Roleplay marking was not active");
 				}
 
+			// LIST banned
+			} else if (splits.Count >= 2 && splits[1].Equals("banned")) {
+				List<Players.Player> players = RoleplayManager.GetRoleplayBanned;
+				if (players.Count == 0) {
+					Chat.Send(causedBy, "No roleplay banned players currently");
+				} else {
+					foreach (Players.Player target in players) {
+						RoleplayRecord record = RoleplayManager.GetPlayerRecord(target);
+						long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000;
+						Chat.Send(causedBy, String.Format("{0} {1} by {2} for: {3}",
+							target.Name,
+							RoleplayManager.prettyPrintDuration(record.timestamp + record.duration - now),
+							record.causedBy.Name,
+							record.reason)
+						);
+					}
+				}
 			// LIST
 			} else {
-				List<string> players = RoleplayManager.GetPlayers;
+				List<string> players = RoleplayManager.GetRoleplayers;
 				if (players.Count == 0) {
 					Chat.Send(causedBy, "<color=yellow>Currently no one has roleplay enabled</color>");
 				} else {

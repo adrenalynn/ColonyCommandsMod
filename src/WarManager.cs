@@ -80,6 +80,10 @@ namespace ColonyCommands {
 		// enable war for a player. Also used to reset the timestamp to now
 		public static void EnableWar(Players.Player player, int duration)
 		{
+			// war is only allowed within roleplay setting
+			if (!RoleplayManager.IsRoleplaying(player)) {
+				return;
+			}
 			if (duration < AntiGrief.WarDuration) {
 				duration = AntiGrief.WarDuration;
 			}
@@ -110,7 +114,7 @@ namespace ColonyCommands {
 			// disable AngryGuards active mode for all colonies
 			if (AntiGrief.AngryGuardsWarMode != null) {
 				foreach (Colony colony in player.Colonies) {
-					AntiGrief.AngryGuardsWarMode.Invoke(null, new object[]{colony, true});
+					AntiGrief.AngryGuardsWarMode.Invoke(null, new object[]{colony, false});
 				}
 			}
 
@@ -176,7 +180,7 @@ namespace ColonyCommands {
 				Log.Write($"Restored permission {groupName} for {target.Name}");
 			}
 
-			// delete the safed permissions file
+			// delete the permissions file
 			if (storedPermissions.Count == 0) {
 				if (File.Exists(SaveFile)) {
 					File.Delete(SaveFile);
