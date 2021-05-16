@@ -10,6 +10,10 @@
 		"0.7.1", "0.8.0"
 	],
 	"patchnotes": [
+		{ "version": "0.8.10", "notes": [
+				"show [RP] marker also without color group definition"
+			]
+		},
 		{ "version": "0.8.9", "notes": [
 				"/rpban and /rpunban commands to allow banning people from using the /rp command"
 			]

@@ -12,69 +12,38 @@ using Chatting.Commands;
  */
 namespace ColonyCommands
 {
-	[ModLoader.ModManager]
 	public class BetterChatCommand : IChatCommand
 	{
-		public bool TryDoCommand(Players.Player causedBy, string chat, List<string> splits)
+		public bool TryDoCommand(Players.Player causedBy, string chatmsg, List<string> splits)
 		{
-			MuteList.Update();
-			if (MuteList.MutedMinutes.ContainsKey(causedBy.ID)) {
-				Chat.Send(causedBy, "[muted]");
-				return true;
-			}
-
-			if (chat.StartsWith("/")) {
+			// never match actual commands
+			if (chatmsg.StartsWith("/")) {
 				return false;
 			}
 
-			// figure out chat color group name
-			string groupname = null;
-			foreach (string s in ChatColors.Colors.Keys) {
-				if (PermissionsManager.HasPermission(causedBy, AntiGrief.MOD_PREFIX + "betterchat." + s)) {
-					groupname = s;
-					break;
-				}
-			}
-			if (string.IsNullOrEmpty(groupname)) {
-				Chat.SendToConnected(causedBy.Name + "> " + chat);
+			MuteList.Update();
+			if (MuteList.MutedMinutes.ContainsKey(causedBy.ID)) {
+				Chat.Send(causedBy, "<color=yellow>[muted]</color>");
 				return true;
 			}
-			ChatColorSpecification spec = ChatColors.Colors[groupname];
-			
-			// rank prefix
-			string fulltext = "";
-			if (!string.IsNullOrEmpty(spec.Prefix)) {
-				if (!string.IsNullOrEmpty(spec.PrefixColor)) {
-					fulltext = $"[<color={spec.PrefixColor}>{spec.Prefix}</color>]";
-				} else {
-					fulltext = $"[{spec.Prefix}]";
-				}
-			}
 
-			// name
-			if (!string.IsNullOrEmpty(spec.Name)) {
-					fulltext += $"<color={spec.Name}>{causedBy.Name}</color>";
-			} else {
-				fulltext += causedBy.Name;
-			}
+			string Name = causedBy.Name;
+			string Prefix = "";
+			string Text = chatmsg;
+
+			// chat colors
+			ChatColors.ApplyColor(causedBy, ref Name, ref Prefix, ref Text);
 
 			// roleplay marker
 			if (RoleplayManager.IsRoleplaying(causedBy)) {
-				fulltext += $"<color={spec.RpMarker}>[RP]</color>";
+				Prefix = $"{Prefix}<color=yellow>[RP]</color>";
 			}
 
-			// text
-			fulltext += "> ";
-			if (!string.IsNullOrEmpty(spec.Text)) {
-					fulltext += $"<color={spec.Text}>{chat}</color>";
-			} else {
-				fulltext += chat;
-			}
-
-			Chat.SendToConnected(fulltext);
+			Chat.SendToConnected($"{Name}{Prefix}> {Text}");
 			return true;
 		}
 	}
+
 
 	public static class ChatColors
 	{
@@ -85,6 +54,45 @@ namespace ColonyCommands
 				return Path.Combine(Path.Combine("gamedata", "savegames"), Path.Combine(ServerManager.WorldName, "chatcolors.json"));
 			}
 		}
+
+
+		// apply color to a chat message
+		public static void ApplyColor(Players.Player causedBy, ref string Name, ref string Prefix, ref string Msg)
+		{
+			// figure out chat color group
+			ChatColorSpecification spec = default(ChatColorSpecification);
+			bool found = false;
+			foreach (string s in Colors.Keys) {
+				if (PermissionsManager.HasPermission(causedBy, AntiGrief.MOD_PREFIX + "betterchat." + s)) {
+					spec = Colors[s];
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				return;
+			}
+
+			// Group Prefix
+			if (!string.IsNullOrEmpty(spec.Prefix)) {
+				if (!string.IsNullOrEmpty(spec.PrefixColor)) {
+					Prefix = $"[<color={spec.PrefixColor}>{spec.Prefix}</color>]{Prefix}";
+				} else {
+					Prefix = $"[{spec.Prefix}]{Prefix}";
+				}
+			}
+
+			// Name
+			if (!string.IsNullOrEmpty(spec.Name)) {
+				Name = $"<color={spec.Name}>{Name}</color>";
+			}
+
+			// Text
+			if (!string.IsNullOrEmpty(spec.Text)) {
+				Msg = $"<color={spec.Text}>{Msg}</color>";
+			}
+		}
+
 
 		// Load from config file (JSON)
 		public static void LoadChatColors()
@@ -125,6 +133,7 @@ namespace ColonyCommands
 			}
 		}
 	}
+
 
 	public struct ChatColorSpecification
 	{
