@@ -51,6 +51,7 @@ namespace ColonyCommands {
 		public static int WarDuration = 2 * 60 * 60; // 2 hours
 		static Dictionary<Players.Player, int> KillCounter = new Dictionary<Players.Player, int>();
 		public static MethodInfo AngryGuardsWarMode = null;
+		public static List<MethodInfo> ChatColorForeignModMethods = new List<MethodInfo>();
 		public static int StartupGracePeriod = 0;
 
 		static string ConfigFilepath {
@@ -733,32 +734,44 @@ namespace ColonyCommands {
 			}, OnlineBackupIntervalHours * 60f * 60f);
 		}
 
-		// load hook into AngryGuards mod, if it is available
+		// enable hooks into other mods (AngryGuards and Imperium, for now)
 		[ModLoader.ModCallback(ModLoader.EModCallbackType.AfterModsLoaded, NAMESPACE + ".AfterModsLoaded")]
 		public static void AfterModsLoaded(List<ModLoader.ModDescription> mods)
 		{
-			Assembly angryguards = null;
+			Assembly angryguards = null, imperium = null;
 			for (int i = 0; i < mods.Count; i++) {
 				if (mods[i].name == "Angry Guards") {
 					angryguards = mods[i].LoadedAssembly;
 					Log.Write("ColonyCommands: found AngryGuards mod, enabling hook");
+				} else if (mods[i].name == "Imperium") {
+					imperium = mods[i].LoadedAssembly;
+					Log.Write("ColonyCommands: found Imperium mod, enabling hook");
 				}
 			}
-
-			if (angryguards == null) {
-				return;
-			}
-
-			foreach (Type t in angryguards.GetTypes()) {
-				if (t.FullName == "AngryGuards.AngryGuards") {
-					MethodInfo m = t.GetMethod("ColonySetWarMode");
-					if (m != null) {
-						Log.Write("Method AngryGuards.ColonySetWarMode found, hook enabled");
-						AngryGuardsWarMode = m;
+			if (angryguards != null) {
+				foreach (Type t in angryguards.GetTypes()) {
+					if (t.FullName == "AngryGuards.AngryGuards") {
+						MethodInfo m = t.GetMethod("ColonySetWarMode");
+						if (m != null) {
+							Log.Write("Method AngryGuards.ColonySetWarMode found, hook enabled");
+							AngryGuardsWarMode = m;
+						}
 					}
 				}
 			}
 
+			// hook to enable chat colors / modifications
+			if (imperium != null) {
+				foreach (Type t in imperium.GetTypes()) {
+					if (t.FullName == "Imperium.Imperium") {
+						MethodInfo m = t.GetMethod("ChatMarker");
+						if (m != null) {
+							Log.Write("Method Imperium.ChatMarker found, hook enabled");
+							ChatColorForeignModMethods.Add(m);
+						}
+					}
+				}
+			}
 		}
 
 		[ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerConnectedLate, NAMESPACE + ".OnPlayerConnectedLate")]

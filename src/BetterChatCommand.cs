@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using Pipliz;
 using Pipliz.JSON;
 using Chatting;
@@ -33,6 +33,11 @@ namespace ColonyCommands
 
 			// chat colors
 			ChatColors.ApplyColor(causedBy, ref Name, ref Prefix, ref Text);
+
+			// allow foreign mods to alter chat further
+			foreach (MethodInfo func in AntiGrief.ChatColorForeignModMethods) {
+				func.Invoke(null, new object[]{Name, Prefix, Text});
+			}
 
 			// roleplay marker
 			if (RoleplayManager.IsRoleplaying(causedBy)) {

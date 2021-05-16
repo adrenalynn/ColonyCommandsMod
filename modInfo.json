@@ -11,7 +11,8 @@
 	],
 	"patchnotes": [
 		{ "version": "0.8.10", "notes": [
-				"show [RP] marker also without color group definition"
+				"show [RP] marker also without color group definition",
+				"enable hook into chat colors/prefixes for other mods"
 			]
 		},
 		{ "version": "0.8.9", "notes": [
