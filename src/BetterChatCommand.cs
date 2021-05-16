@@ -36,7 +36,10 @@ namespace ColonyCommands
 
 			// allow foreign mods to alter chat further
 			foreach (MethodInfo func in AntiGrief.ChatColorForeignModMethods) {
-				func.Invoke(null, new object[]{Name, Prefix, Text});
+				bool val = (bool)func.Invoke(null, new object[]{Name, Prefix, Text});
+				if (val == true) { // stop chain here, other mod handles message
+					return false;
+				}
 			}
 
 			// roleplay marker
