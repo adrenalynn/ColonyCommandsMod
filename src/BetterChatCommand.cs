@@ -34,17 +34,17 @@ namespace ColonyCommands
 			// chat colors
 			ChatColors.ApplyColor(causedBy, ref Name, ref Prefix, ref Text);
 
+			// roleplay marker
+			if (RoleplayManager.IsRoleplaying(causedBy)) {
+				Prefix = $"{Prefix}<color=yellow>[RP]</color>";
+			}
+
 			// allow foreign mods to alter chat further
 			foreach (MethodInfo func in AntiGrief.ChatColorForeignModMethods) {
 				bool val = (bool)func.Invoke(null, new object[]{causedBy, Name, Prefix, Text});
 				if (val == true) { // stop chain here, other mod handles message
 					return false;
 				}
-			}
-
-			// roleplay marker
-			if (RoleplayManager.IsRoleplaying(causedBy)) {
-				Prefix = $"{Prefix}<color=yellow>[RP]</color>";
 			}
 
 			Chat.SendToConnected($"{Name}{Prefix}> {Text}");
